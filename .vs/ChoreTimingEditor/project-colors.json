@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "ProjectMap": {
+    "0bd36672-16bc-49a6-bac4-64bafa32d6de": {
+      "ProjectGuid": "0bd36672-16bc-49a6-bac4-64bafa32d6de",
+      "DisplayName": "ChoreTimingEditor",
+      "ColorIndex": 0
+    }
+  },
+  "NextColorIndex": 1
+}
