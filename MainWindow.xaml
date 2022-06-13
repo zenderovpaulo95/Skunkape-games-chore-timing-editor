@@ -1,13 +1,13 @@
-﻿<Window x:Name="MainWindowForm" x:Class="ChoreTimingEditor.MainWindow"
+﻿<Window x:Name="MainWindowForm"  x:Class="ChoreTimingEditor.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ChoreTimingEditor"
         mc:Ignorable="d"
-        Title="MainWindow" Height="600" Width="800" ResizeMode="NoResize">
+        Title="Skunkape games chore timing editor" Height="600" Width="800" ResizeMode="NoResize">
     <Grid>
-        <Button x:Name="choreFile" Content="Button" HorizontalAlignment="Left" Margin="574,50,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click"/>
+        <Button x:Name="choreFile" Content="load landb's folder" HorizontalAlignment="Left" Margin="574,50,0,0" VerticalAlignment="Top" Width="111" Click="Button_Click"/>
         <TextBox x:Name="inputFile" HorizontalAlignment="Left" Height="18" Margin="38,51,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="504"/>
         <ComboBox x:Name="cb" HorizontalAlignment="Left" Margin="38,135,0,0" VerticalAlignment="Top" Width="282" Height="24" SelectionChanged="cb_SelectionChanged"/>
         <RichTextBox x:Name="richText" HorizontalAlignment="Left" Height="105" Margin="363,135,0,0" VerticalAlignment="Top" Width="399">
@@ -18,29 +18,29 @@
             </FlowDocument>
         </RichTextBox>
         <TextBox x:Name="timePhrase" HorizontalAlignment="Left" Height="22" Margin="200,279,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
-        <Label Content="Длина фразы:" HorizontalAlignment="Left" Margin="78,277,0,0" VerticalAlignment="Top"/>
+        <Label Content="Timing:" HorizontalAlignment="Left" Margin="111,277,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="begTime" HorizontalAlignment="Left" Height="22" Margin="200,185,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
-        <Label Content="Начало сцены" HorizontalAlignment="Left" Margin="78,183,0,0" VerticalAlignment="Top"/>
+        <Label Content="Begining:" HorizontalAlignment="Left" Margin="101,183,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="endTime" HorizontalAlignment="Left" Height="22" Margin="200,233,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
-        <Label Content="Конец сцены" HorizontalAlignment="Left" Margin="78,231,0,0" VerticalAlignment="Top"/>
-        <Button x:Name="landbFolder" Content="Button" HorizontalAlignment="Left" Margin="574,12,0,0" VerticalAlignment="Top" Width="75" Click="landbFolder_Click"/>
+        <Label Content="Ending:" HorizontalAlignment="Left" Margin="111,231,0,0" VerticalAlignment="Top"/>
+        <Button x:Name="landbFolder" Content="load chore" HorizontalAlignment="Left" Margin="574,12,0,0" VerticalAlignment="Top" Width="111" Click="landbFolder_Click"/>
         <TextBox x:Name="folderPath" HorizontalAlignment="Left" Height="18" Margin="38,13,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="504"/>
-        <Button x:Name="saveBtn" Content="Сохранить" HorizontalAlignment="Left" Margin="50,520,0,0" VerticalAlignment="Top" Width="92" Click="saveBtn_Click"/>
-        <Button x:Name="changeBtn" Content="Изменить длину фразы и пересчитать тайминги речи дальше" HorizontalAlignment="Left" Margin="363,279,0,0" VerticalAlignment="Top" Width="380" Click="changeBtn_Click"/>
+        <Button x:Name="saveBtn" Content="Save chore" HorizontalAlignment="Left" Margin="50,520,0,0" VerticalAlignment="Top" Width="92" Click="saveBtn_Click"/>
+        <Button x:Name="changeBtn" Content="Change actor's speech time and recalculate next actors' speech timings" HorizontalAlignment="Left" Margin="363,279,0,0" VerticalAlignment="Top" Width="427" Click="changeBtn_Click"/>
         <ComboBox x:Name="cam_cb" HorizontalAlignment="Left" Margin="38,327,0,0" VerticalAlignment="Top" Width="282" Height="24" SelectionChanged="cam_cb_changed"/>
         <TextBox x:Name="camTime" HorizontalAlignment="Left" Height="22" Margin="556,329,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
-        <Label Content="Время переключения камеры:" HorizontalAlignment="Left" Margin="363,327,0,0" VerticalAlignment="Top" Height="24" Width="179"/>
-        <Button x:Name="anmFile" Content="Button" HorizontalAlignment="Left" Margin="574,87,0,0" VerticalAlignment="Top" Width="75" Click="anmFile_Click"/>
+        <Label Content="Time next camera position:" HorizontalAlignment="Left" Margin="389,327,0,0" VerticalAlignment="Top" Height="24" Width="153"/>
+        <Button x:Name="anmFile" Content="load anm file" HorizontalAlignment="Left" Margin="574,87,0,0" VerticalAlignment="Top" Width="111" Click="anmFile_Click"/>
         <TextBox x:Name="anmFileInputText" HorizontalAlignment="Left" Height="18" Margin="38,88,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="504"/>
         <TextBox x:Name="timeAnm" HorizontalAlignment="Left" Height="22" Margin="200,476,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
-        <Label Content="Длина анимации:" HorizontalAlignment="Left" Margin="78,474,0,0" VerticalAlignment="Top"/>
+        <Label Content="Time of animation:" HorizontalAlignment="Left" Margin="78,474,0,0" VerticalAlignment="Top"/>
         <Button x:Name="changeAnmBtn" Content="Изменить длину анимации" HorizontalAlignment="Left" Margin="363,474,0,0" VerticalAlignment="Top" Width="179" Click="changeAnmBtn_Click"/>
-        <Button x:Name="saveAnmBtn" Content="Сохранить анимацию" HorizontalAlignment="Left" Margin="193,520,0,0" VerticalAlignment="Top" Width="198" Click="saveAnmBtn_Click"/>
-        <Button x:Name="changeCamBtn" Content="Изменить время смены камеры" HorizontalAlignment="Left" Margin="363,369,0,0" VerticalAlignment="Top" Width="231" Click="changeCamBtn_Click"/>
+        <Button x:Name="saveAnmBtn" Content="Save anm file" HorizontalAlignment="Left" Margin="193,520,0,0" VerticalAlignment="Top" Width="127" Click="saveAnmBtn_Click"/>
+        <Button x:Name="changeCamBtn" Content="Change time next camera position" HorizontalAlignment="Left" Margin="363,369,0,0" VerticalAlignment="Top" Width="231" Click="changeCamBtn_Click"/>
         <ComboBox x:Name="contribCB" HorizontalAlignment="Left" Margin="38,430,0,0" VerticalAlignment="Top" Width="280" SelectionChanged="contribCB_SelectionChanged"/>
         <TextBox x:Name="begContrTime" HorizontalAlignment="Left" Margin="378,431,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
         <TextBox x:Name="endContrTime" HorizontalAlignment="Left" Margin="512,431,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
-        <Button x:Name="changeTimingBtn" Content="Изменить длину фразы" HorizontalAlignment="Left" Margin="363,245,0,0" VerticalAlignment="Top" Width="313" Click="changeTimingBtn_Click"/>
+        <Button x:Name="changeTimingBtn" Content="Change actor's speech time" HorizontalAlignment="Left" Margin="363,245,0,0" VerticalAlignment="Top" Width="313" Click="changeTimingBtn_Click"/>
         <Button x:Name="changeValuesBtn" Content="Изменить" HorizontalAlignment="Left" Margin="676,431,0,0" VerticalAlignment="Top" Click="changeValuesBtn_Click"/>
 
     </Grid>

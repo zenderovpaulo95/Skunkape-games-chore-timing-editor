@@ -2,16 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Microsoft.Win32;
 using System.IO;
 
@@ -302,7 +295,8 @@ namespace ChoreTimingEditor
                         contribCB.SelectedIndex = 0;
                     }
 
-                    changeBtn.Content = ChoreList[cb.SelectedIndex].isLandb ? "Изменить длину фразы и тайминги остальных диалогов" : "Изменить тайминги или длину фразы";
+                    //Need to think about correctly change naming button
+                    changeBtn.Content = ChoreList[cb.SelectedIndex].isLandb ? "Change speech timing and another dialogs' timings" : "Change timing and speech's timing";
                     changeBtn.Width = ChoreList[cb.SelectedIndex].isLandb ? 380 : 280;
                     changeTimingBtn.IsEnabled = false;
 
@@ -314,11 +308,6 @@ namespace ChoreTimingEditor
                     }
                 }
             }
-        }
-
-        private void playBtn_Click(object sender, RoutedEventArgs e)
-        {
-            
         }
 
         private void changeBtn_Click(object sender, RoutedEventArgs e)
