@@ -1,0 +1,10 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/bin
+/obj
+/desktop.ini
+/.vs/ChoreTimingEditor
+/WorkedOldCode.txt
+/packages
