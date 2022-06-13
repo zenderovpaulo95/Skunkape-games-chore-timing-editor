@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="Skunkape games chore timing editor" Height="600" Width="800" ResizeMode="NoResize">
     <Grid>
-        <Button x:Name="choreFile" Content="load landb's folder" HorizontalAlignment="Left" Margin="574,50,0,0" VerticalAlignment="Top" Width="111" Click="Button_Click"/>
+        <Button x:Name="choreFile" Content="load chore" HorizontalAlignment="Left" Margin="574,50,0,0" VerticalAlignment="Top" Width="111" Click="Button_Click"/>
         <TextBox x:Name="inputFile" HorizontalAlignment="Left" Height="18" Margin="38,51,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="504"/>
         <ComboBox x:Name="cb" HorizontalAlignment="Left" Margin="38,135,0,0" VerticalAlignment="Top" Width="282" Height="24" SelectionChanged="cb_SelectionChanged"/>
         <RichTextBox x:Name="richText" HorizontalAlignment="Left" Height="105" Margin="363,135,0,0" VerticalAlignment="Top" Width="399">
@@ -23,7 +23,7 @@
         <Label Content="Begining:" HorizontalAlignment="Left" Margin="101,183,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="endTime" HorizontalAlignment="Left" Height="22" Margin="200,233,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
         <Label Content="Ending:" HorizontalAlignment="Left" Margin="111,231,0,0" VerticalAlignment="Top"/>
-        <Button x:Name="landbFolder" Content="load chore" HorizontalAlignment="Left" Margin="574,12,0,0" VerticalAlignment="Top" Width="111" Click="landbFolder_Click"/>
+        <Button x:Name="landbFolder" Content="load landb's folder" HorizontalAlignment="Left" Margin="574,12,0,0" VerticalAlignment="Top" Width="111" Click="landbFolder_Click"/>
         <TextBox x:Name="folderPath" HorizontalAlignment="Left" Height="18" Margin="38,13,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="504"/>
         <Button x:Name="saveBtn" Content="Save chore" HorizontalAlignment="Left" Margin="50,520,0,0" VerticalAlignment="Top" Width="92" Click="saveBtn_Click"/>
         <Button x:Name="changeBtn" Content="Change actor's speech time and recalculate next actors' speech timings" HorizontalAlignment="Left" Margin="363,279,0,0" VerticalAlignment="Top" Width="427" Click="changeBtn_Click"/>
