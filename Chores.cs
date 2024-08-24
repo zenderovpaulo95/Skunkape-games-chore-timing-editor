@@ -3,13 +3,6 @@ namespace ChoreTimingEditor
 {
     class Chores
     {
-        public struct AdditionalData
-        {
-            public int addPos;
-            public float beginTime;
-            public float endTime;
-        }
-
         public struct Time
         {
             public int Pos;
@@ -25,7 +18,91 @@ namespace ChoreTimingEditor
             public float endTime;
         }
 
+        public struct objectElements
+        {
+            public int blockNameLen1;
+            public int nameLen1;
+            public string name1;
+            public int someValue;
+            public int blockElementLen;
+            public int elementsCount;
+            public int[] elements;
+            public int blockElementSize;
+            public int blockNameLen2;
+            public int nameLen2;
+            public string name2;
+            public int blockSize;
+            public byte[] block;
+        }
+
+        public struct choreElements
+        {
+            public int unknown1;
+            public int unknown2;
+            public int unknown3;
+            public int unknownLen1;
+            public byte[] block1;
+            public int unknownLen2;
+            public byte[] block2;
+            public importElements imports;
+            public int unknownLen3;
+            public byte[] block3;
+            public int value1;
+            public byte[] crc64Name1;
+            public float elementTime;
+            public int value2;
+            public int value3;
+            public int unknownLen4;
+            public byte[] block4;
+            public int blockLen;
+            public byte[] crcName2;
+            public byte[] unknownValue; //8 byte of something
+            public int blockSize;
+            public byte[] elementBlock;
+            public int subBlockSize;
+            public byte[] subBlockElement;
+            public byte[] logicValues; //8 byte of zeros and ones
+        }
+
+        public struct  otherElements
+        {
+            public bool isLandb;
+        }
+
+        public struct importElements
+        {
+            public int unknownValue;
+            public int blockSize1;
+            public byte[] block1;
+            public int blockSize2;
+            public byte[] block2;
+            public byte val;
+        }
+
         public class Chore
+        {
+            public int blockLength;
+            public string fileName;
+            public int someValue;
+            public float commonTime;
+            public int countElements;
+            public int countObjects;
+
+            public choreElements[] elements;
+            public int blockSize1;
+            public byte[] block1;
+            public int blockSize2;
+            public byte[] block2;
+            public int blockSize3;
+            public byte[] block3;
+            public objectElements[] objects;
+
+            public Chore()
+            {
+            }
+        }
+
+        /*public class Chore
         {
             public int Pos;
             public bool isLandb;
@@ -67,6 +144,6 @@ namespace ChoreTimingEditor
                 this.time = time;
                 this.NewTime = NewTime;
             }
-        }
+        }*/
     }
 }

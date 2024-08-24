@@ -7,6 +7,8 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using Microsoft.Win32;
 using System.IO;
+using TTG_Tools;
+using System.Security.Cryptography;
 
 namespace ChoreTimingEditor
 {
@@ -62,7 +64,40 @@ namespace ChoreTimingEditor
 
             if (ofd.ShowDialog() == true && ((LandbStrs != null) && (LandbStrs.Count > 0)))
             {
-                if (cam_cb.Items.Count > 0) cam_cb.Items.Clear();
+                FileStream fs = new FileStream(ofd.FileName, FileMode.Open);
+                BinaryReader br = new BinaryReader(fs);
+                byte[] header = br.ReadBytes(4);
+                uint size = br.ReadUInt32();
+                byte[] someValues = br.ReadBytes(8);
+                int count = br.ReadInt32();
+                Chores.Chore chore = new Chores.Chore();
+                InEngineWords words = new InEngineWords();
+
+                bool hasChoreResource = false;
+                bool hasAnimation = false;
+
+                for (int i = 0; i < count; i++)
+                {
+                    byte[] tmp = br.ReadBytes(8);
+                    byte[] tmp2 = br.ReadBytes(4);
+                    
+                    if(BitConverter.ToUInt64(tmp, 0) == CRCs.CRC64(0, words.animation.ToLower())) hasAnimation = true;
+                    if(BitConverter.ToUInt64(tmp, 0) == CRCs.CRC64(0, words.choreResource.ToLower())) hasChoreResource = true;
+                }
+
+                if (hasAnimation || hasChoreResource)
+                {
+                    int blockLen = br.ReadInt32();
+                    int len = br.ReadInt32();
+                    byte[] tmp = br.ReadBytes(len);
+                    chore.fileName = Encoding.ASCII.GetString(tmp);
+                    
+                }
+
+                br.Close();
+                fs.Close();
+                #region
+                /*if (cam_cb.Items.Count > 0) cam_cb.Items.Clear();
 
                 inputFile.Text = ofd.FileName;
                 ChoreFilePath = ofd.FileName;
@@ -239,8 +274,8 @@ namespace ChoreTimingEditor
 
                     CamChoreList.RemoveAt(CamChoreList.Count - 1);
                     cam_cb.SelectedIndex = 0;
-                }
-
+                }*/
+                #endregion
 
             }
         }
@@ -655,6 +690,51 @@ namespace ChoreTimingEditor
                     begContrTime.Text = Convert.ToString(ChoreList[cb.SelectedIndex].contribution[contribCB.SelectedIndex].begTime);
                     endContrTime.Text = Convert.ToString(ChoreList[cb.SelectedIndex].contribution[contribCB.SelectedIndex].endTime);
                 }
+            }
+        }
+
+        private void extractDataBtn_Click(object sender, RoutedEventArgs e)
+        {
+            System.Windows.Forms.SaveFileDialog sfd = new System.Windows.Forms.SaveFileDialog();
+            sfd.Filter = "Text file (*.txt) | *.txt";
+
+            if(sfd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                List<string> strs = new List<string>();
+
+                strs.Add("Common length=" + Convert.ToString(commonLength) + "\r\nCommon pos=" + Convert.ToString(commonPos));
+
+                for(int i = 0; i < ChoreList.Count; i++)
+                {
+                    string str = "BlockNum=" + Convert.ToString(i + 1) + "\r\n";
+                    str += "SomeData=" + BitConverter.ToString(ChoreList[i].someData) + "\r\n";
+                    str += "isLandb=" + Convert.ToString(ChoreList[i].isLandb) + "\r\n";
+                    str += "pos=" + Convert.ToString(ChoreList[i].Pos) + "\r\n";
+                    str += "phraseTime=" + Convert.ToString(ChoreList[i].phraseTime) + "\r\n";
+                    str += "time.hasTime=" + Convert.ToString(ChoreList[i].time.hasTime) + "\r\n";
+                    str += "previousPhraseTime=" + Convert.ToString(ChoreList[i].previousPhraseTime) + "\r\n";
+
+                    str += "time.Pos=" + Convert.ToString(ChoreList[i].time.Pos) + "\r\n";
+                    str += "time.begTime=" + Convert.ToString(ChoreList[i].time.begTime) + "\r\n";
+                    str += "time.endTime=" + Convert.ToString(ChoreList[i].time.endTime) + "\r\n";
+
+                    str += "contributionCount=" + ChoreList[i].contribution.Length + "\r\n";
+
+                    for (int c = 0; c < ChoreList[i].contribution.Length; c++)
+                    {
+                        str += "contribution(" + Convert.ToString(c + 1) + ").Pos=" + Convert.ToString(ChoreList[i].contribution[c].Pos) + "\r\n";
+                        str += "contribution(" + Convert.ToString(c + 1) + ").begTime=" + Convert.ToString(ChoreList[i].contribution[c].begTime) + "\r\n";
+                        str += "contribution(" + Convert.ToString(c + 1) + ").endTime=" + Convert.ToString(ChoreList[i].contribution[c].endTime) + "\r\n";
+                    }
+
+                    str += "info.addPos=" + Convert.ToString(ChoreList[i].info.addPos) + "\r\n";
+                    str += "info.beginTime=" + Convert.ToString(ChoreList[i].info.beginTime) + "\r\n";
+                    str += "info.endTime=" + Convert.ToString(ChoreList[i].info.endTime) + "\r\n";
+
+                    strs.Add(str);
+                }
+
+                File.WriteAllLines(sfd.FileName, strs);
             }
         }
     }
