@@ -1,4 +1,7 @@
 ﻿
+using System.Collections.Generic;
+using System.Windows.Documents;
+
 namespace ChoreTimingEditor
 {
     class Chores
@@ -6,16 +9,15 @@ namespace ChoreTimingEditor
         public struct Time
         {
             public int Pos;
-            public float begTime;
-            public float endTime;
-            public bool hasTime;
+            public float timeElement;
+            public bool modifiedTime;
         }
 
         public struct Contribution
         {
             public int Pos;
-            public float begTime;
-            public float endTime;
+            public float timeContribution;
+            public bool modifiedTime;
         }
 
         public struct objectElements
@@ -28,11 +30,20 @@ namespace ChoreTimingEditor
             public int elementsCount;
             public int[] elements;
             public int blockElementSize;
+            public byte[] blockElement;
+            public int someValue2;
             public int blockNameLen2;
             public int nameLen2;
             public string name2;
             public int blockSize;
             public byte[] block;
+        }
+
+        public struct CameraChore
+        {
+            public int Pos;
+            public float timeChore;
+            public string nameCamChore;
         }
 
         public struct choreElements
@@ -48,18 +59,24 @@ namespace ChoreTimingEditor
             public int unknownLen3;
             public byte[] block3;
             public int value1;
-            public byte[] crc64Name1;
+            public ulong crc64Name1;
+            public string name1;
             public float elementTime;
             public int value2;
             public int value3;
             public int unknownLen4;
             public byte[] block4;
             public int blockLen;
-            public byte[] crcName2;
-            public byte[] unknownValue; //8 byte of something
+            public byte[] blockName;
+            public ulong crc64Name2;
+            public string name2;
+            public byte[] unknownValue; //8 byte of something. No need use it.
             public int blockSize;
             public byte[] elementBlock;
             public int subBlockSize;
+            public Time[] timeElement;
+            public Contribution[] contribElement;
+            public List<CameraChore> camChoreList;
             public byte[] subBlockElement;
             public byte[] logicValues; //8 byte of zeros and ones
         }

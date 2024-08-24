@@ -71,6 +71,7 @@
     </Compile>
     <Compile Include="Chores.cs" />
     <Compile Include="CRCs.cs" />
+    <Compile Include="fileList.cs" />
     <Compile Include="InEngineWords.cs" />
     <Compile Include="landbs.cs" />
     <Compile Include="MainWindow.xaml.cs">

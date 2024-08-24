@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Documents;
 using Microsoft.Win32;
 using System.IO;
 using TTG_Tools;
-using System.Security.Cryptography;
+using System.Windows.Forms;
+using System.Linq;
 
 namespace ChoreTimingEditor
 {
@@ -25,9 +24,11 @@ namespace ChoreTimingEditor
         string landbFolderPath;
         string ChoreFilePath;
         List<landbs.landb> LandbStrs = null;
-        List<Chores.Chore> ChoreList = null;
-        List<Chores.CameraChore> CamChoreList = null;
+        Chores.Chore chore;
+        //List<Chores.Chore> ChoreList = null;
+        //List<Chores.CameraChore> CamChoreList = null;
         float commonLength = 0.0f;
+        fileList files = null;
         int commonPos = 0;
 
         float commonTiming = 0.0f;
@@ -38,6 +39,7 @@ namespace ChoreTimingEditor
         byte[] value = { 0x84, 0xF0, 0x0E, 0x83, 0x25, 0x01, 0x07, 0x6B }; //value<float> что-то там
         byte[] timeCRC64 = { 0x55, 0xD3, 0xDC, 0xA6, 0x0F, 0xA3, 0xD6, 0x4B }; //CRC64 слова "time"
         byte[] contributionCRC64 = { 0xF6, 0xB5, 0x7F, 0x6E, 0x58, 0x41, 0xD3, 0x9B }; //CRC64 слова "contribution"
+        byte[] someValue = { 0x47, 0xA9, 0x33, 0xCC, 0x28, 0x9F, 0x6B, 0xBC }; //WTF? After this value I see some property set junk
 
         private int SearchBinText(FileStream fs, int pos, string pattern)
         {
@@ -59,7 +61,7 @@ namespace ChoreTimingEditor
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            OpenFileDialog ofd = new OpenFileDialog();
+            Microsoft.Win32.OpenFileDialog ofd = new Microsoft.Win32.OpenFileDialog();
             ofd.Filter = "CHORE file (*.chore) | *.chore";
 
             if (ofd.ShowDialog() == true && ((LandbStrs != null) && (LandbStrs.Count > 0)))
@@ -70,7 +72,7 @@ namespace ChoreTimingEditor
                 uint size = br.ReadUInt32();
                 byte[] someValues = br.ReadBytes(8);
                 int count = br.ReadInt32();
-                Chores.Chore chore = new Chores.Chore();
+                chore = new Chores.Chore();
                 InEngineWords words = new InEngineWords();
 
                 bool hasChoreResource = false;
@@ -87,15 +89,154 @@ namespace ChoreTimingEditor
 
                 if (hasAnimation || hasChoreResource)
                 {
+                    bool hasPropVal = false;
                     int blockLen = br.ReadInt32();
                     int len = br.ReadInt32();
                     byte[] tmp = br.ReadBytes(len);
                     chore.fileName = Encoding.ASCII.GetString(tmp);
-                    
+                    chore.someValue = br.ReadInt32();
+                    chore.commonTime = br.ReadSingle();
+                    chore.countElements = br.ReadInt32();
+                    chore.countObjects = br.ReadInt32();
+
+                    chore.elements = new Chores.choreElements[chore.countElements];
+                    chore.objects = new Chores.objectElements[chore.countObjects];
+
+                    for(int i = 0; i < chore.countElements; i++)
+                    {
+                        chore.elements[i].unknown1 = br.ReadInt32();
+                        chore.elements[i].unknown2 = br.ReadInt32();
+                        chore.elements[i].unknown3 = br.ReadInt32();
+                        chore.elements[i].unknownLen1 = br.ReadInt32();
+                        chore.elements[i].block1 = br.ReadBytes(chore.elements[i].unknownLen1 - 4);
+                        chore.elements[i].unknownLen2 = br.ReadInt32();
+                        chore.elements[i].block2 = br.ReadBytes(chore.elements[i].unknownLen2 - 4);
+
+                        if (chore.elements[i].unknown3 == 0)
+                        {
+                            chore.elements[i].imports.unknownValue = br.ReadInt32();
+                            chore.elements[i].imports.blockSize1 = br.ReadInt32();
+                            chore.elements[i].imports.block1 = br.ReadBytes(chore.elements[i].imports.blockSize1 - 4);
+                            chore.elements[i].imports.blockSize2 = br.ReadInt32();
+                            chore.elements[i].imports.block2 = br.ReadBytes(chore.elements[i].imports.blockSize2 - 4);
+                            chore.elements[i].imports.val = br.ReadByte();
+                        }
+
+                        chore.elements[i].unknownLen3 = br.ReadInt32();
+                        chore.elements[i].block3 = br.ReadBytes(chore.elements[i].unknownLen3 - 4);
+
+                        if(hasPropVal)
+                        {
+                            tmp = br.ReadBytes(16); //Skip 16 bytes of junk
+                        }
+
+                        chore.elements[i].value1 = br.ReadInt32();
+                        chore.elements[i].crc64Name1 = br.ReadUInt64();
+
+                        chore.elements[i].name1 = BitConverter.ToString(BitConverter.GetBytes(chore.elements[i].crc64Name1), 0);
+
+                        if(files.CRCs.Any(x => x == chore.elements[i].crc64Name1))
+                        {
+                            chore.elements[i].name1 = files.files[Array.IndexOf(files.CRCs, chore.elements[i].crc64Name1)];
+                        }
+                        else if (LandbStrs.Any(x => x.someData == chore.elements[i].crc64Name1))
+                        {
+                            chore.elements[i].name1 = Convert.ToString(LandbStrs.ToArray()[LandbStrs.FindIndex(p => p.someData == chore.elements[i].crc64Name1)].langid) + ".lang";
+                        }
+
+                        chore.elements[i].elementTime = br.ReadSingle();
+                        chore.elements[i].value2 = br.ReadInt32();
+                        chore.elements[i].value3 = br.ReadInt32();
+                        chore.elements[i].unknownLen4 = br.ReadInt32();
+                        chore.elements[i].block4 = br.ReadBytes(chore.elements[i].unknownLen4 - 4);
+                        chore.elements[i].blockLen = br.ReadInt32();
+                        chore.elements[i].blockName = br.ReadBytes(chore.elements[i].blockLen - 4);
+
+                        //if it's not a prop shit
+                        if (chore.elements[i].value2 != 0x186a0 && chore.elements[i].blockName.Length >= 8)
+                        {
+                            chore.elements[i].crc64Name2 = BitConverter.ToUInt64(chore.elements[i].blockName, 0);
+
+                            if(chore.elements[i].blockName.Length - 8 >= 8)
+                            {
+                                hasPropVal = BitConverter.ToUInt64(chore.elements[i].blockName, 8) == BitConverter.ToUInt64(someValue, 0);
+                            }
+
+                            chore.elements[i].name2 = BitConverter.ToString(BitConverter.GetBytes(chore.elements[i].crc64Name2), 0);
+                            if (files.CRCs.Contains(chore.elements[i].crc64Name2))
+                            {
+                                chore.elements[i].name2 = files.files[Array.IndexOf(files.CRCs, chore.elements[i].crc64Name2)];
+                            }
+                            else if (LandbStrs.Any(x => x.someData == chore.elements[i].crc64Name2))
+                            {
+                                chore.elements[i].name2 = Convert.ToString(LandbStrs.ToArray()[LandbStrs.FindIndex(p => p.someData == chore.elements[i].crc64Name2)].langid) + ".lang";
+                            }
+                        }
+                        else
+                        {
+                            hasPropVal = false;
+                        }
+                        
+                        chore.elements[i].blockSize = br.ReadInt32();
+                        chore.elements[i].elementBlock = br.ReadBytes(chore.elements[i].blockSize - 4);
+                        chore.elements[i].subBlockSize = br.ReadInt32();
+                        chore.elements[i].subBlockElement = br.ReadBytes(chore.elements[i].subBlockSize - 4);
+                        chore.elements[i].logicValues = br.ReadBytes(8);
+                    }
+
+                    chore.blockSize1 = br.ReadInt32();
+                    chore.block1 = br.ReadBytes(chore.blockSize1 - 4);
+                    chore.blockSize2 = br.ReadInt32();
+                    chore.block2 = br.ReadBytes(chore.blockSize2 - 4);
+                    chore.blockSize3 = br.ReadInt32();
+                    chore.block3 = br.ReadBytes(chore.blockSize3 - 4);
+
+                    for(int i = 0; i < chore.countObjects; i++)
+                    {
+                        chore.objects[i].blockNameLen1 = br.ReadInt32();
+                        chore.objects[i].nameLen1 = br.ReadInt32();
+                        tmp = br.ReadBytes(chore.objects[i].nameLen1);
+                        chore.objects[i].name1 = Encoding.ASCII.GetString(tmp);
+                        chore.objects[i].someValue = br.ReadInt32();
+                        chore.objects[i].blockElementLen = br.ReadInt32();
+                        chore.objects[i].elementsCount = br.ReadInt32();
+                        chore.objects[i].elements = new int[chore.objects[i].elementsCount];
+
+                        for(int j = 0; j < chore.objects[i].elementsCount; j++)
+                        {
+                            chore.objects[i].elements[j] = br.ReadInt32();
+                        }
+
+                        chore.objects[i].blockElementSize = br.ReadInt32();
+                        chore.objects[i].blockElement = br.ReadBytes(chore.objects[i].blockElementSize - 4);
+                        chore.objects[i].someValue2 = br.ReadInt32();
+                        chore.objects[i].blockNameLen2 = br.ReadInt32();
+                        chore.objects[i].nameLen2 = br.ReadInt32();
+                        tmp = br.ReadBytes(chore.objects[i].nameLen2);
+                        chore.objects[i].name2 = Encoding.ASCII.GetString(tmp);
+                        chore.objects[i].blockSize = br.ReadInt32();
+                        chore.objects[i].block = br.ReadBytes(chore.objects[i].blockSize - 4);
+                    }
+
+                    if (objectNamesCB.Items.Count > 0) objectNamesCB.Items.Clear();
+
+                    for(int i = 0; i < chore.countObjects; i++)
+                    {
+                        objectNamesCB.Items.Add(chore.objects[i].name1);
+                    }
+
+                    if (objectNamesCB.Items.Count > 0) objectNamesCB.SelectedIndex = 0;
+                }
+                else
+                {
+                    System.Windows.MessageBox.Show("Timing elements not found.", "There is no needed timing elements");
                 }
 
                 br.Close();
                 fs.Close();
+
+                inputFile.Text = ofd.FileName;
+
                 #region
                 /*if (cam_cb.Items.Count > 0) cam_cb.Items.Clear();
 
@@ -306,7 +447,8 @@ namespace ChoreTimingEditor
 
         private void cb_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            begTime.Text = "";
+            #region старый код
+            /*begTime.Text = "";
             endTime.Text = "";
             timePhrase.Text = "";
 
@@ -342,12 +484,14 @@ namespace ChoreTimingEditor
                         changeTimingBtn.IsEnabled = true;
                     }
                 }
-            }
+            }*/
+            #endregion
         }
 
         private void changeBtn_Click(object sender, RoutedEventArgs e)
         {
-            if (ChoreList[cb.SelectedIndex].isLandb)
+            #region старый код
+            /*if (ChoreList[cb.SelectedIndex].isLandb)
             {
                 try
                 {
@@ -358,89 +502,91 @@ namespace ChoreTimingEditor
                         float diff = ChoreList[cb.SelectedIndex].phraseTime - ChoreList[cb.SelectedIndex].previousPhraseTime;
 
                         ChoreList[cb.SelectedIndex].time.endTime = ChoreList[cb.SelectedIndex].time.begTime + ChoreList[cb.SelectedIndex].phraseTime;
-                        commonLength += diff;
+                        commonLength += diff;*/
 
-                        /*if (ChoreList[cb.SelectedIndex].contribution != null)
-                        {
-                            for (int i = 0; i < ChoreList[cb.SelectedIndex].contribution.Length; i++)
-                            {
-                                ChoreList[cb.SelectedIndex].contribution[i].begTime += diff;
-                                ChoreList[cb.SelectedIndex].contribution[i].endTime += diff;
-                            }
-                        }*/
-
-                        if (cb.SelectedIndex + 1 < ChoreList.Count)
-                        {
-                            for (int k = cb.SelectedIndex + 1; k < ChoreList.Count; k++)
-                            {
-                                if (ChoreList[k].isLandb)
-                                {
-                                    ChoreList[k].time.begTime += diff;
-                                    ChoreList[k].info.beginTime += diff;
-                                    ChoreList[k].time.endTime = ChoreList[k].time.begTime + ChoreList[k].phraseTime;
-                                    ChoreList[k].info.endTime = ChoreList[k].time.endTime;
-                                }
-                            }
-                        }
-                    }
-
-                    begTime.Text = Convert.ToString(ChoreList[cb.SelectedIndex].time.begTime);
-                    endTime.Text = Convert.ToString(ChoreList[cb.SelectedIndex].time.endTime);
-                    timePhrase.Text = Convert.ToString(ChoreList[cb.SelectedIndex].phraseTime);
-                }
-                catch
-                {
-                    timePhrase.Text = Convert.ToString(ChoreList[cb.SelectedIndex].previousPhraseTime);
-                    ChoreList[cb.SelectedIndex].phraseTime = ChoreList[cb.SelectedIndex].previousPhraseTime;
-                }
-            }
-            else
+            /*if (ChoreList[cb.SelectedIndex].contribution != null)
             {
-                float beginTime = ChoreList[cb.SelectedIndex].time.begTime;
-                float endingTime = ChoreList[cb.SelectedIndex].time.endTime;
-                float phraseTime = ChoreList[cb.SelectedIndex].phraseTime;
-
-                try
+                for (int i = 0; i < ChoreList[cb.SelectedIndex].contribution.Length; i++)
                 {
-                    if(Convert.ToSingle(begTime.Text) != ChoreList[cb.SelectedIndex].time.begTime)
-                    {
-                        ChoreList[cb.SelectedIndex].time.begTime = Convert.ToSingle(begTime.Text);
-                        ChoreList[cb.SelectedIndex].time.endTime = ChoreList[cb.SelectedIndex].time.begTime + ChoreList[cb.SelectedIndex].phraseTime;
-                        endTime.Text = Convert.ToString(ChoreList[cb.SelectedIndex].time.endTime);
-                    }
-                    if(Convert.ToSingle(endTime.Text) != ChoreList[cb.SelectedIndex].time.endTime)
-                    {
-                        ChoreList[cb.SelectedIndex].time.endTime = Convert.ToSingle(endTime.Text);
-                        ChoreList[cb.SelectedIndex].phraseTime = ChoreList[cb.SelectedIndex].time.endTime - ChoreList[cb.SelectedIndex].time.begTime;
-                        timePhrase.Text = Convert.ToString(ChoreList[cb.SelectedIndex].phraseTime);
-                    }
-                    if(Convert.ToSingle(timePhrase.Text) != ChoreList[cb.SelectedIndex].phraseTime)
-                    {
-                        ChoreList[cb.SelectedIndex].phraseTime = Convert.ToSingle(timePhrase.Text);
-                        ChoreList[cb.SelectedIndex].time.endTime = ChoreList[cb.SelectedIndex].time.begTime + ChoreList[cb.SelectedIndex].phraseTime;
-                        endTime.Text = Convert.ToString(ChoreList[cb.SelectedIndex].time.endTime);
-                    }
-
-                    begTime.Text = Convert.ToString(ChoreList[cb.SelectedIndex].time.begTime);
-                    endTime.Text = Convert.ToString(ChoreList[cb.SelectedIndex].time.endTime);
-                    timePhrase.Text = Convert.ToString(ChoreList[cb.SelectedIndex].phraseTime);
+                    ChoreList[cb.SelectedIndex].contribution[i].begTime += diff;
+                    ChoreList[cb.SelectedIndex].contribution[i].endTime += diff;
                 }
-                catch
-                {
-                    timePhrase.Text = Convert.ToString(phraseTime);
-                    begTime.Text = Convert.ToString(beginTime);
-                    endTime.Text = Convert.ToString(endingTime);
+            }*/
 
-                    ChoreList[cb.SelectedIndex].time.begTime = beginTime;
-                    ChoreList[cb.SelectedIndex].time.endTime = endingTime;
-                    ChoreList[cb.SelectedIndex].phraseTime = phraseTime;
+            /*if (cb.SelectedIndex + 1 < ChoreList.Count)
+            {
+                for (int k = cb.SelectedIndex + 1; k < ChoreList.Count; k++)
+                {
+                    if (ChoreList[k].isLandb)
+                    {
+                        ChoreList[k].time.begTime += diff;
+                        ChoreList[k].info.beginTime += diff;
+                        ChoreList[k].time.endTime = ChoreList[k].time.begTime + ChoreList[k].phraseTime;
+                        ChoreList[k].info.endTime = ChoreList[k].time.endTime;
+                    }
                 }
             }
         }
 
+        begTime.Text = Convert.ToString(ChoreList[cb.SelectedIndex].time.begTime);
+        endTime.Text = Convert.ToString(ChoreList[cb.SelectedIndex].time.endTime);
+        timePhrase.Text = Convert.ToString(ChoreList[cb.SelectedIndex].phraseTime);
+    }
+    catch
+    {
+        timePhrase.Text = Convert.ToString(ChoreList[cb.SelectedIndex].previousPhraseTime);
+        ChoreList[cb.SelectedIndex].phraseTime = ChoreList[cb.SelectedIndex].previousPhraseTime;
+    }
+}
+else
+{
+    float beginTime = ChoreList[cb.SelectedIndex].time.begTime;
+    float endingTime = ChoreList[cb.SelectedIndex].time.endTime;
+    float phraseTime = ChoreList[cb.SelectedIndex].phraseTime;
+
+    try
+    {
+        if(Convert.ToSingle(begTime.Text) != ChoreList[cb.SelectedIndex].time.begTime)
+        {
+            ChoreList[cb.SelectedIndex].time.begTime = Convert.ToSingle(begTime.Text);
+            ChoreList[cb.SelectedIndex].time.endTime = ChoreList[cb.SelectedIndex].time.begTime + ChoreList[cb.SelectedIndex].phraseTime;
+            endTime.Text = Convert.ToString(ChoreList[cb.SelectedIndex].time.endTime);
+        }
+        if(Convert.ToSingle(endTime.Text) != ChoreList[cb.SelectedIndex].time.endTime)
+        {
+            ChoreList[cb.SelectedIndex].time.endTime = Convert.ToSingle(endTime.Text);
+            ChoreList[cb.SelectedIndex].phraseTime = ChoreList[cb.SelectedIndex].time.endTime - ChoreList[cb.SelectedIndex].time.begTime;
+            timePhrase.Text = Convert.ToString(ChoreList[cb.SelectedIndex].phraseTime);
+        }
+        if(Convert.ToSingle(timePhrase.Text) != ChoreList[cb.SelectedIndex].phraseTime)
+        {
+            ChoreList[cb.SelectedIndex].phraseTime = Convert.ToSingle(timePhrase.Text);
+            ChoreList[cb.SelectedIndex].time.endTime = ChoreList[cb.SelectedIndex].time.begTime + ChoreList[cb.SelectedIndex].phraseTime;
+            endTime.Text = Convert.ToString(ChoreList[cb.SelectedIndex].time.endTime);
+        }
+
+        begTime.Text = Convert.ToString(ChoreList[cb.SelectedIndex].time.begTime);
+        endTime.Text = Convert.ToString(ChoreList[cb.SelectedIndex].time.endTime);
+        timePhrase.Text = Convert.ToString(ChoreList[cb.SelectedIndex].phraseTime);
+    }
+    catch
+    {
+        timePhrase.Text = Convert.ToString(phraseTime);
+        begTime.Text = Convert.ToString(beginTime);
+        endTime.Text = Convert.ToString(endingTime);
+
+        ChoreList[cb.SelectedIndex].time.begTime = beginTime;
+        ChoreList[cb.SelectedIndex].time.endTime = endingTime;
+        ChoreList[cb.SelectedIndex].phraseTime = phraseTime;
+    }
+}*/
+            #endregion
+        }
+
         private void saveBtn_Click(object sender, RoutedEventArgs e)
         {
-            if (ChoreList.Count > 0 && ChoreList != null)
+            #region старый код
+            /*if (ChoreList.Count > 0 && ChoreList != null)
             {
                 FileStream fs = new FileStream(ChoreFilePath, FileMode.Open);
                 BinaryWriter bw = new BinaryWriter(fs);
@@ -487,20 +633,23 @@ namespace ChoreTimingEditor
 
                 bw.Close();
                 fs.Close();
-            }
+            }*/
+            #endregion
         }
 
         private void cam_cb_changed(object sender, SelectionChangedEventArgs e)
         {
-            if (cam_cb.SelectedIndex != -1)
+            #region Старый код
+            /*if (cam_cb.SelectedIndex != -1)
             {
                 camTime.Text = Convert.ToString(CamChoreList[cam_cb.SelectedIndex].time);
-            }
+            }*/
+            #endregion
         }
 
         private void anmFile_Click(object sender, RoutedEventArgs e)
         {
-            OpenFileDialog ofd = new OpenFileDialog();
+            Microsoft.Win32.OpenFileDialog ofd = new Microsoft.Win32.OpenFileDialog();
             ofd.Filter = "anm файл (*.anm) | *.anm";
 
             if(ofd.ShowDialog() == true)
@@ -588,7 +737,8 @@ namespace ChoreTimingEditor
 
         private void changeCamBtn_Click(object sender, RoutedEventArgs e)
         {
-            if((CamChoreList.Count > 0) && (CamChoreList != null) && (cam_cb.SelectedIndex != -1))
+            #region старый код
+            /*if((CamChoreList.Count > 0) && (CamChoreList != null) && (cam_cb.SelectedIndex != -1))
             {
                 int index = cam_cb.SelectedIndex;
 
@@ -602,20 +752,26 @@ namespace ChoreTimingEditor
                 {
                     camTime.Text = Convert.ToString(CamChoreList[index].time);
                 }
-            }
+            }*/
+            #endregion
         }
 
         private void contribCB_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            #region старый код
+            /*
             if(contribCB.SelectedIndex != -1)
             {
                 begContrTime.Text = Convert.ToString(ChoreList[cb.SelectedIndex].contribution[contribCB.SelectedIndex].begTime);
                 endContrTime.Text = Convert.ToString(ChoreList[cb.SelectedIndex].contribution[contribCB.SelectedIndex].endTime);
-            }
+            }*/
+            #endregion
         }
 
         private void changeTimingBtn_Click(object sender, RoutedEventArgs e)
         {
+            #region старый код
+            /*
             float beginTime = ChoreList[cb.SelectedIndex].time.begTime;
             float endingTime = ChoreList[cb.SelectedIndex].time.endTime;
             float phraseTime = ChoreList[cb.SelectedIndex].phraseTime;
@@ -669,11 +825,14 @@ namespace ChoreTimingEditor
                 ChoreList[cb.SelectedIndex].time.endTime = endingTime;
                 ChoreList[cb.SelectedIndex].phraseTime = phraseTime;
             }
+            */
+            #endregion
         }
 
         private void changeValuesBtn_Click(object sender, RoutedEventArgs e)
         {
-            if (contribCB.Items.Count > 0) {
+            #region старый код
+            /*if (contribCB.Items.Count > 0) {
                 float first_val = ChoreList[cb.SelectedIndex].contribution[contribCB.SelectedIndex].begTime;
                 float last_val = ChoreList[cb.SelectedIndex].contribution[contribCB.SelectedIndex].endTime;
 
@@ -690,12 +849,14 @@ namespace ChoreTimingEditor
                     begContrTime.Text = Convert.ToString(ChoreList[cb.SelectedIndex].contribution[contribCB.SelectedIndex].begTime);
                     endContrTime.Text = Convert.ToString(ChoreList[cb.SelectedIndex].contribution[contribCB.SelectedIndex].endTime);
                 }
-            }
+            }*/
+            #endregion
         }
 
         private void extractDataBtn_Click(object sender, RoutedEventArgs e)
         {
-            System.Windows.Forms.SaveFileDialog sfd = new System.Windows.Forms.SaveFileDialog();
+            #region старый код
+            /*System.Windows.Forms.SaveFileDialog sfd = new System.Windows.Forms.SaveFileDialog();
             sfd.Filter = "Text file (*.txt) | *.txt";
 
             if(sfd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
@@ -735,6 +896,44 @@ namespace ChoreTimingEditor
                 }
 
                 File.WriteAllLines(sfd.FileName, strs);
+            }*/
+            #endregion
+        }
+
+        private void resourceFolderBtn_Click(object sender, RoutedEventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+
+            if(fbd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                DirectoryInfo di = new DirectoryInfo(fbd.SelectedPath);
+                FileInfo[] fi = di.GetFiles("*.*", SearchOption.AllDirectories);
+
+                files = new fileList();
+                files.files = new string[fi.Length];
+                files.CRCs = new ulong[fi.Length];
+                
+                for(int i = 0; i < fi.Length; i++)
+                {
+                    files.files[i] = fi[i].Name.ToLower();
+                    files.CRCs[i] = CRCs.CRC64(0, files.files[i]);
+                }
+
+                resorceFolderTB.Text = fbd.SelectedPath;
+            }
+        }
+
+        private void objectNamesCB_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (objectNamesCB.SelectedIndex != -1) {
+                if (elementNamesCB.Items.Count > 0) elementNamesCB.Items.Clear();
+
+                for (int i = 0; i < chore.objects[objectNamesCB.SelectedIndex].elementsCount; i++)
+                {
+                    elementNamesCB.Items.Add(chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[i]].name1);
+                }
+
+                if(elementNamesCB.Items.Count > 0) elementNamesCB.SelectedIndex = 0;
             }
         }
     }

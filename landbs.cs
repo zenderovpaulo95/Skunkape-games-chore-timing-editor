@@ -9,13 +9,13 @@ namespace ChoreTimingEditor
         public class landb
         {
             public uint langid;
-            public byte[] someData;
+            public ulong someData;
             public string ActorName;
             public string ActorSpeech;
 
             public landb() { }
 
-            public landb(uint langid, byte[] someData, string ActorName, string ActorSpeech)
+            public landb(uint langid, ulong someData, string ActorName, string ActorSpeech)
             {
                 this.langid = langid;
                 this.someData = someData;
@@ -32,7 +32,7 @@ namespace ChoreTimingEditor
             string ActorName = "";
             string ActorSpeech = "";
             uint langid = 0;
-            byte[] someData = null;
+            ulong someData = 0;
 
             //Пропускаю всякую инфу
             int poz = 16;
@@ -45,7 +45,7 @@ namespace ChoreTimingEditor
             for(int i = 0; i < count; i++)
             {
                 langid = br.ReadUInt32();
-                someData = br.ReadBytes(8);
+                someData = br.ReadUInt64();
                 br.BaseStream.Seek(52, SeekOrigin.Current);
                 tmp = br.ReadInt32();
                 tmpStr = br.ReadBytes(tmp);
