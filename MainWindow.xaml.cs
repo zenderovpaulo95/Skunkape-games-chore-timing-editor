@@ -8,6 +8,7 @@ using System.IO;
 using TTG_Tools;
 using System.Windows.Forms;
 using System.Linq;
+using System.Windows.Documents;
 
 namespace ChoreTimingEditor
 {
@@ -46,7 +47,7 @@ namespace ChoreTimingEditor
             byte[] tmpPattern = Encoding.UTF8.GetBytes(pattern);
             byte[] tmp;
 
-            while(pos <= fs.Length)
+            while (pos <= fs.Length)
             {
                 tmp = new byte[tmpPattern.Length];
                 fs.Seek(pos, SeekOrigin.Begin);
@@ -82,9 +83,9 @@ namespace ChoreTimingEditor
                 {
                     byte[] tmp = br.ReadBytes(8);
                     byte[] tmp2 = br.ReadBytes(4);
-                    
-                    if(BitConverter.ToUInt64(tmp, 0) == CRCs.CRC64(0, words.animation.ToLower())) hasAnimation = true;
-                    if(BitConverter.ToUInt64(tmp, 0) == CRCs.CRC64(0, words.choreResource.ToLower())) hasChoreResource = true;
+
+                    if (BitConverter.ToUInt64(tmp, 0) == CRCs.CRC64(0, words.animation.ToLower())) hasAnimation = true;
+                    if (BitConverter.ToUInt64(tmp, 0) == CRCs.CRC64(0, words.choreResource.ToLower())) hasChoreResource = true;
                 }
 
                 if (hasAnimation || hasChoreResource)
@@ -102,8 +103,9 @@ namespace ChoreTimingEditor
                     chore.elements = new Chores.choreElements[chore.countElements];
                     chore.objects = new Chores.objectElements[chore.countObjects];
 
-                    for(int i = 0; i < chore.countElements; i++)
+                    for (int i = 0; i < chore.countElements; i++)
                     {
+                        chore.elements[i].isLandb = false;
                         chore.elements[i].unknown1 = br.ReadInt32();
                         chore.elements[i].unknown2 = br.ReadInt32();
                         chore.elements[i].unknown3 = br.ReadInt32();
@@ -125,9 +127,9 @@ namespace ChoreTimingEditor
                         chore.elements[i].unknownLen3 = br.ReadInt32();
                         chore.elements[i].block3 = br.ReadBytes(chore.elements[i].unknownLen3 - 4);
 
-                        if(hasPropVal)
+                        if (hasPropVal)
                         {
-                            tmp = br.ReadBytes(16); //Skip 16 bytes of junk
+                            chore.elements[i].unknownPropBytes = br.ReadBytes(16); //Skip 16 bytes of junk
                         }
 
                         chore.elements[i].value1 = br.ReadInt32();
@@ -135,13 +137,14 @@ namespace ChoreTimingEditor
 
                         chore.elements[i].name1 = BitConverter.ToString(BitConverter.GetBytes(chore.elements[i].crc64Name1), 0);
 
-                        if(files.CRCs.Any(x => x == chore.elements[i].crc64Name1))
+                        if (files.CRCs.Any(x => x == chore.elements[i].crc64Name1))
                         {
                             chore.elements[i].name1 = files.files[Array.IndexOf(files.CRCs, chore.elements[i].crc64Name1)];
                         }
                         else if (LandbStrs.Any(x => x.someData == chore.elements[i].crc64Name1))
                         {
                             chore.elements[i].name1 = Convert.ToString(LandbStrs.ToArray()[LandbStrs.FindIndex(p => p.someData == chore.elements[i].crc64Name1)].langid) + ".lang";
+                            chore.elements[i].isLandb = true;
                         }
 
                         chore.elements[i].elementTime = br.ReadSingle();
@@ -157,7 +160,7 @@ namespace ChoreTimingEditor
                         {
                             chore.elements[i].crc64Name2 = BitConverter.ToUInt64(chore.elements[i].blockName, 0);
 
-                            if(chore.elements[i].blockName.Length - 8 >= 8)
+                            if (chore.elements[i].blockName.Length - 8 >= 8)
                             {
                                 hasPropVal = BitConverter.ToUInt64(chore.elements[i].blockName, 8) == BitConverter.ToUInt64(someValue, 0);
                             }
@@ -176,7 +179,7 @@ namespace ChoreTimingEditor
                         {
                             hasPropVal = false;
                         }
-                        
+
                         chore.elements[i].blockSize = br.ReadInt32();
                         chore.elements[i].elementBlock = br.ReadBytes(chore.elements[i].blockSize - 4);
                         chore.elements[i].subBlockSize = br.ReadInt32();
@@ -191,7 +194,7 @@ namespace ChoreTimingEditor
                     chore.blockSize3 = br.ReadInt32();
                     chore.block3 = br.ReadBytes(chore.blockSize3 - 4);
 
-                    for(int i = 0; i < chore.countObjects; i++)
+                    for (int i = 0; i < chore.countObjects; i++)
                     {
                         chore.objects[i].blockNameLen1 = br.ReadInt32();
                         chore.objects[i].nameLen1 = br.ReadInt32();
@@ -202,7 +205,7 @@ namespace ChoreTimingEditor
                         chore.objects[i].elementsCount = br.ReadInt32();
                         chore.objects[i].elements = new int[chore.objects[i].elementsCount];
 
-                        for(int j = 0; j < chore.objects[i].elementsCount; j++)
+                        for (int j = 0; j < chore.objects[i].elementsCount; j++)
                         {
                             chore.objects[i].elements[j] = br.ReadInt32();
                         }
@@ -220,7 +223,7 @@ namespace ChoreTimingEditor
 
                     if (objectNamesCB.Items.Count > 0) objectNamesCB.Items.Clear();
 
-                    for(int i = 0; i < chore.countObjects; i++)
+                    for (int i = 0; i < chore.countObjects; i++)
                     {
                         objectNamesCB.Items.Add(chore.objects[i].name1);
                     }
@@ -425,7 +428,7 @@ namespace ChoreTimingEditor
         {
             System.Windows.Forms.FolderBrowserDialog fbd = new System.Windows.Forms.FolderBrowserDialog();
 
-            if(fbd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            if (fbd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 landbFolderPath = fbd.SelectedPath;
                 folderPath.Text = landbFolderPath;
@@ -435,9 +438,9 @@ namespace ChoreTimingEditor
                 DirectoryInfo di = new DirectoryInfo(landbFolderPath);
                 FileInfo[] fi = di.GetFiles("*.landb", SearchOption.AllDirectories);
 
-                if(fi.Length > 0)
+                if (fi.Length > 0)
                 {
-                    for(int i = 0; i < fi.Length; i++)
+                    for (int i = 0; i < fi.Length; i++)
                     {
                         landbs.ReadFiles(fi[i].FullName, ref LandbStrs);
                     }
@@ -652,7 +655,7 @@ else
             Microsoft.Win32.OpenFileDialog ofd = new Microsoft.Win32.OpenFileDialog();
             ofd.Filter = "anm файл (*.anm) | *.anm";
 
-            if(ofd.ShowDialog() == true)
+            if (ofd.ShowDialog() == true)
             {
                 anmFileInputText.Text = ofd.FileName;
                 FileStream fs = new FileStream(anmFileInputText.Text, FileMode.Open);
@@ -671,7 +674,7 @@ else
 
                 byte[] tmp;
 
-                for(int i = 0; i < count; i++)
+                for (int i = 0; i < count; i++)
                 {
                     anms[i].oneValue = br.ReadByte();
                     anms[i].one = br.ReadInt32();
@@ -697,7 +700,7 @@ else
 
             byte[] tmp;
 
-            for(int i = 1; i < anms.Length; i++)
+            for (int i = 1; i < anms.Length; i++)
             {
                 anms[i].time += diff;
                 tmp = BitConverter.GetBytes(anms[i].time);
@@ -723,7 +726,7 @@ else
             poz += 0x7D;
             bw.BaseStream.Seek(poz, SeekOrigin.Begin);
 
-            for(int i = 0; i < anms.Length; i++)
+            for (int i = 0; i < anms.Length; i++)
             {
                 bw.Write(anms[i].oneValue);
                 bw.Write(anms[i].one);
@@ -904,7 +907,7 @@ else
         {
             FolderBrowserDialog fbd = new FolderBrowserDialog();
 
-            if(fbd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            if (fbd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 DirectoryInfo di = new DirectoryInfo(fbd.SelectedPath);
                 FileInfo[] fi = di.GetFiles("*.*", SearchOption.AllDirectories);
@@ -912,8 +915,8 @@ else
                 files = new fileList();
                 files.files = new string[fi.Length];
                 files.CRCs = new ulong[fi.Length];
-                
-                for(int i = 0; i < fi.Length; i++)
+
+                for (int i = 0; i < fi.Length; i++)
                 {
                     files.files[i] = fi[i].Name.ToLower();
                     files.CRCs[i] = CRCs.CRC64(0, files.files[i]);
@@ -925,7 +928,8 @@ else
 
         private void objectNamesCB_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (objectNamesCB.SelectedIndex != -1) {
+            if (objectNamesCB.SelectedIndex != -1)
+            {
                 if (elementNamesCB.Items.Count > 0) elementNamesCB.Items.Clear();
 
                 for (int i = 0; i < chore.objects[objectNamesCB.SelectedIndex].elementsCount; i++)
@@ -933,7 +937,23 @@ else
                     elementNamesCB.Items.Add(chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[i]].name1);
                 }
 
-                if(elementNamesCB.Items.Count > 0) elementNamesCB.SelectedIndex = 0;
+                if (elementNamesCB.Items.Count > 0) elementNamesCB.SelectedIndex = 0;
+            }
+        }
+
+        private void elementNamesCB_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            landbRT.Document.Blocks.Clear();
+            landbRT.Visibility = Visibility.Hidden;
+
+            if ((elementNamesCB.SelectedIndex != -1) && (objectNamesCB.SelectedIndex != -1))
+            {
+                if (chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].isLandb)
+                {
+                    landbRT.Visibility = Visibility.Visible;
+                    string str = LandbStrs.ToArray()[LandbStrs.FindIndex(p => p.someData == chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].crc64Name2)].ActorName + ": " + LandbStrs.ToArray()[LandbStrs.FindIndex(p => p.someData == chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].crc64Name2)].ActorSpeech;
+                    landbRT.Document.Blocks.Add(new Paragraph(new Run(str)));
+                }
             }
         }
     }

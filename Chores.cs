@@ -48,6 +48,7 @@ namespace ChoreTimingEditor
 
         public struct choreElements
         {
+            public bool isLandb;
             public int unknown1;
             public int unknown2;
             public int unknown3;
@@ -70,7 +71,8 @@ namespace ChoreTimingEditor
             public byte[] blockName;
             public ulong crc64Name2;
             public string name2;
-            public byte[] unknownValue; //8 byte of something. No need use it.
+            public byte[] unknownValue; //8 byte of something.
+            public byte[] unknownPropBytes; //8 bytes by 2 times of some property value
             public int blockSize;
             public byte[] elementBlock;
             public int subBlockSize;

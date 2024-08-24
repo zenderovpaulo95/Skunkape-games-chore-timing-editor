@@ -10,7 +10,7 @@
         <Button x:Name="choreFile" Content="load chore" HorizontalAlignment="Left" Margin="574,50,0,0" VerticalAlignment="Top" Width="111" Click="Button_Click"/>
         <TextBox x:Name="inputFile" HorizontalAlignment="Left" Height="18" Margin="38,51,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="504"/>
         <ComboBox x:Name="cb" HorizontalAlignment="Left" Margin="42,173,0,0" VerticalAlignment="Top" Width="282" Height="24" SelectionChanged="cb_SelectionChanged" d:IsHidden="True" Visibility="Hidden"/>
-        <RichTextBox x:Name="richText" HorizontalAlignment="Left" Height="105" Margin="367,173,0,0" VerticalAlignment="Top" Width="399" d:IsHidden="True" Visibility="Hidden">
+        <RichTextBox x:Name="landbRT" HorizontalAlignment="Left" Height="105" Margin="376,262,0,0" VerticalAlignment="Top" Width="380" Visibility="Hidden">
             <FlowDocument>
                 <Paragraph>
                     <Run Text="RichTextBox"/>
@@ -46,6 +46,6 @@
         <Button x:Name="resourceFolderBtn" Content="set resource files folder" HorizontalAlignment="Left" Margin="574,133,0,0" VerticalAlignment="Top" Width="182" Click="resourceFolderBtn_Click"/>
         <TextBox x:Name="resorceFolderTB" HorizontalAlignment="Left" Height="18" Margin="38,134,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="504"/>
         <ComboBox x:Name="objectNamesCB" HorizontalAlignment="Left" Margin="38,185,0,0" VerticalAlignment="Top" Width="268" SelectionChanged="objectNamesCB_SelectionChanged"/>
-        <ComboBox x:Name="elementNamesCB" HorizontalAlignment="Left" Margin="367,185,0,0" VerticalAlignment="Top" Width="389"/>
+        <ComboBox x:Name="elementNamesCB" HorizontalAlignment="Left" Margin="367,185,0,0" VerticalAlignment="Top" Width="389" SelectionChanged="elementNamesCB_SelectionChanged"/>
     </Grid>
 </Window>
