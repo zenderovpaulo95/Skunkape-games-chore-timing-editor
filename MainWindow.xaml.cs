@@ -120,6 +120,7 @@ namespace ChoreTimingEditor
                         chore.elements[i].isLandb = false;
                         chore.elements[i].hasTime = false;
                         chore.elements[i].hasContribution = false;
+                        chore.elements[i].hasActiveCamera = false;
 
                         chore.elements[i].unknown1 = br.ReadInt32();
                         chore.elements[i].unknown2 = br.ReadInt32();
@@ -203,6 +204,19 @@ namespace ChoreTimingEditor
 
                         int timePos = SearchCRC64Value(chore.elements[i].elementBlock, CRCs.CRC64(0, words.time.ToLower()));
                         int contributionPos = SearchCRC64Value(chore.elements[i].elementBlock, CRCs.CRC64(0, words.contribution.ToLower()));
+                        int activeCameraPos = SearchCRC64Value(chore.elements[i].elementBlock, CRCs.CRC64(0, words.activeCamera.ToLower()));
+                        int runtimePos = SearchCRC64Value(chore.elements[i].elementBlock, CRCs.CRC64(0, words.runtimeVisible.ToLower()));
+
+                        if (activeCameraPos != -1)
+                        {
+                            chore.elements[i].hasActiveCamera = true;
+                            chore.elements[i].cameras.Pos = activeCameraPos;
+                        }
+
+                        if(runtimePos != -1)
+                        {
+                            chore.elements[i].visRun.Pos = runtimePos;
+                        }
 
                         if (timePos != -1)
                         {
@@ -1016,9 +1030,11 @@ else
             contributionTB.Visibility = Visibility.Hidden;
             contributionLabel.Visibility = Visibility.Hidden;
 
-
             if ((elementNamesCB.SelectedIndex != -1) && (objectNamesCB.SelectedIndex != -1))
             {
+                string check_str = chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].hasActiveCamera ? "Yes! There is a camera pos: " + Convert.ToString(chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].cameras.Pos) + ". Block: " + BitConverter.ToString(BitConverter.GetBytes(chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].crc64Name1)) : "There's no cameras :(";
+                acLabel.Content = check_str;
+
                 if (chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].isLandb)
                 {
                     landbRT.Visibility = Visibility.Visible;

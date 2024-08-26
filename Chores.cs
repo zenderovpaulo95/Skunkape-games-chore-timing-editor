@@ -20,6 +20,11 @@ namespace ChoreTimingEditor
             public bool modifiedTime;
         }
 
+        public struct  activeCamera 
+        {
+            public int Pos;
+        }
+
         public struct objectElements
         {
             public int blockNameLen1;
@@ -51,6 +56,7 @@ namespace ChoreTimingEditor
             public bool isLandb;
             public bool hasTime;
             public bool hasContribution;
+            public bool hasActiveCamera;
             public int unknown1;
             public int unknown2;
             public int unknown3;
@@ -80,7 +86,8 @@ namespace ChoreTimingEditor
             public int subBlockSize;
             public Time[] timeElement;
             public Contribution[] contribElement;
-            public List<CameraChore> camChoreList;
+            //public List<CameraChore> camChoreList;
+            public activeCamera cameras;
             public byte[] subBlockElement;
             public byte[] logicValues; //8 byte of zeros and ones
         }

@@ -55,5 +55,6 @@
         <TextBox x:Name="contributionTB" HorizontalAlignment="Left" Margin="115,430,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120" Visibility="Hidden"/>
         <Button x:Name="timeBtn" Content="Change" HorizontalAlignment="Left" Margin="256,324,0,0" VerticalAlignment="Top" Width="83" Visibility="Hidden"/>
         <Button x:Name="contributionBtn" Content="Change" HorizontalAlignment="Left" Margin="256,430,0,0" VerticalAlignment="Top" Width="84" Visibility="Hidden"/>
+        <Label x:Name="acLabel" Content="Label" HorizontalAlignment="Left" Margin="393,450,0,0" VerticalAlignment="Top"/>
     </Grid>
 </Window>

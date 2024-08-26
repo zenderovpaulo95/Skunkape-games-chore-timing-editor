@@ -32,6 +32,7 @@ namespace ChoreTimingEditor
         public string boolType = "bool";
         public string usePrivateNodel = "Use Private Node1";
         public string activeCamera = "Active Camera";
+        public string runtimeVisible = "Runtime: Visible";
         public string aviVector3 = "AnimatedValueInterface<Vector3>";
         public string aviString = "AnimatedValueInterface<String>";
         public string aviFloat = "AnimatedValueInterface<float>";
