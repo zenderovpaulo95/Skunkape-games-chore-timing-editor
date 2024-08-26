@@ -42,6 +42,17 @@ namespace ChoreTimingEditor
         byte[] contributionCRC64 = { 0xF6, 0xB5, 0x7F, 0x6E, 0x58, 0x41, 0xD3, 0x9B }; //CRC64 слова "contribution"
         byte[] someValue = { 0x47, 0xA9, 0x33, 0xCC, 0x28, 0x9F, 0x6B, 0xBC }; //WTF? After this value I see some property set junk
 
+        private int SearchCRC64Value(byte[] block, ulong CRC64)
+        {
+            for(int i = 0; i + 8 < block.Length; i++)
+            {
+                ulong checkVal = BitConverter.ToUInt64(block, i);
+
+                if (checkVal == CRC64) return i;
+            }
+            return -1;
+        }
+
         private int SearchBinText(FileStream fs, int pos, string pattern)
         {
             byte[] tmpPattern = Encoding.UTF8.GetBytes(pattern);
@@ -91,6 +102,7 @@ namespace ChoreTimingEditor
                 if (hasAnimation || hasChoreResource)
                 {
                     bool hasPropVal = false;
+
                     int blockLen = br.ReadInt32();
                     int len = br.ReadInt32();
                     byte[] tmp = br.ReadBytes(len);
@@ -106,6 +118,9 @@ namespace ChoreTimingEditor
                     for (int i = 0; i < chore.countElements; i++)
                     {
                         chore.elements[i].isLandb = false;
+                        chore.elements[i].hasTime = false;
+                        chore.elements[i].hasContribution = false;
+
                         chore.elements[i].unknown1 = br.ReadInt32();
                         chore.elements[i].unknown2 = br.ReadInt32();
                         chore.elements[i].unknown3 = br.ReadInt32();
@@ -185,6 +200,47 @@ namespace ChoreTimingEditor
                         chore.elements[i].subBlockSize = br.ReadInt32();
                         chore.elements[i].subBlockElement = br.ReadBytes(chore.elements[i].subBlockSize - 4);
                         chore.elements[i].logicValues = br.ReadBytes(8);
+
+                        int timePos = SearchCRC64Value(chore.elements[i].elementBlock, CRCs.CRC64(0, words.time.ToLower()));
+                        int contributionPos = SearchCRC64Value(chore.elements[i].elementBlock, CRCs.CRC64(0, words.contribution.ToLower()));
+
+                        if (timePos != -1)
+                        {
+                            chore.elements[i].hasTime = true;
+                            timePos += 24;
+
+                            int tmpCount = BitConverter.ToInt32(chore.elements[i].elementBlock, timePos);
+                            chore.elements[i].timeElement = new Chores.Time[tmpCount];
+                            timePos += 4;
+
+                            for(int t = 0; t < tmpCount; t++)
+                            {
+                                chore.elements[i].timeElement[t].Pos = timePos;
+                                chore.elements[i].timeElement[t].modifiedTime = false;
+                                chore.elements[i].timeElement[t].timeElement = (float)Math.Round(BitConverter.ToSingle(chore.elements[i].elementBlock, timePos), 3);
+
+                                timePos += 13;
+                            }
+                        }
+
+                        if (contributionPos != -1)
+                        {
+                            chore.elements[i].hasContribution = true;
+                            contributionPos += 24;
+
+                            int tmpCount = BitConverter.ToInt32(chore.elements[i].elementBlock, contributionPos);
+                            chore.elements[i].contribElement = new Chores.Contribution[tmpCount];
+                            contributionPos += 4;
+
+                            for(int c = 0; c < tmpCount; c++)
+                            {
+                                chore.elements[i].contribElement[c].Pos = contributionPos;
+                                chore.elements[i].contribElement[c].modifiedTime = false;
+                                chore.elements[i].contribElement[c].timeContribution = (float)Math.Round(BitConverter.ToSingle(chore.elements[i].elementBlock, contributionPos), 3);
+
+                                contributionPos += 13;
+                            }
+                        }
                     }
 
                     chore.blockSize1 = br.ReadInt32();
@@ -946,6 +1002,21 @@ else
             landbRT.Document.Blocks.Clear();
             landbRT.Visibility = Visibility.Hidden;
 
+            timeTB.Text = "";
+            timeCB.Items.Clear();
+            timeCB.Visibility = Visibility.Hidden;
+            timeLabel.Visibility = Visibility.Hidden;
+            timeTB.Visibility = Visibility.Hidden;
+            timeBtn.Visibility = Visibility.Hidden;
+
+            contributionCB.Items.Clear();
+            contributionTB.Text = "";
+            contributionBtn.Visibility = Visibility.Hidden;
+            contributionCB.Visibility = Visibility.Hidden;
+            contributionTB.Visibility = Visibility.Hidden;
+            contributionLabel.Visibility = Visibility.Hidden;
+
+
             if ((elementNamesCB.SelectedIndex != -1) && (objectNamesCB.SelectedIndex != -1))
             {
                 if (chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].isLandb)
@@ -954,6 +1025,52 @@ else
                     string str = LandbStrs.ToArray()[LandbStrs.FindIndex(p => p.someData == chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].crc64Name2)].ActorName + ": " + LandbStrs.ToArray()[LandbStrs.FindIndex(p => p.someData == chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].crc64Name2)].ActorSpeech;
                     landbRT.Document.Blocks.Add(new Paragraph(new Run(str)));
                 }
+
+                if (chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].hasTime)
+                {
+                    for(int i = 0; i < chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].timeElement.Length; i++)
+                    {
+                        timeCB.Items.Add((i + 1).ToString());
+                    }
+
+                    timeCB.Visibility = Visibility.Visible;
+                    timeLabel.Visibility = Visibility.Visible;
+                    timeTB.Visibility = Visibility.Visible;
+                    timeBtn.Visibility = Visibility.Visible;
+
+                    timeCB.SelectedIndex = 0;
+                }
+
+                if (chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].hasContribution)
+                {
+                    for (int i = 0; i < chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].contribElement.Length; i++)
+                    {
+                        contributionCB.Items.Add((i + 1).ToString());
+                    }
+
+                    contributionCB.Visibility = Visibility.Visible;
+                    contributionLabel.Visibility = Visibility.Visible;
+                    contributionTB.Visibility = Visibility.Visible;
+                    contributionBtn.Visibility = Visibility.Visible;
+
+                    contributionCB.SelectedIndex = 0;
+                }
+            }
+        }
+
+        private void contributionCB_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (contributionCB.SelectedIndex != -1)
+            {
+                contributionTB.Text = Convert.ToString(chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].contribElement[contributionCB.SelectedIndex].timeContribution);
+            }
+        }
+
+        private void timeCB_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if(timeCB.SelectedIndex != -1)
+            {
+                timeTB.Text = Convert.ToString(chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].timeElement[timeCB.SelectedIndex].timeElement);
             }
         }
     }

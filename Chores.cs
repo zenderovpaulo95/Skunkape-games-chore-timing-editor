@@ -49,6 +49,8 @@ namespace ChoreTimingEditor
         public struct choreElements
         {
             public bool isLandb;
+            public bool hasTime;
+            public bool hasContribution;
             public int unknown1;
             public int unknown2;
             public int unknown3;
