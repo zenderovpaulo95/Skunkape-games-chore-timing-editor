@@ -1,5 +1,6 @@
 ﻿
 using System.Collections.Generic;
+using System.Security.RightsManagement;
 using System.Windows.Documents;
 
 namespace ChoreTimingEditor
@@ -18,11 +19,6 @@ namespace ChoreTimingEditor
             public int Pos;
             public float timeContribution;
             public bool modifiedTime;
-        }
-
-        public struct  activeCamera 
-        {
-            public int Pos;
         }
 
         public struct objectElements
@@ -44,6 +40,31 @@ namespace ChoreTimingEditor
             public byte[] block;
         }
 
+        public struct importElements
+        {
+            public int unknownValue;
+            public int blockSize1;
+            public byte[] block1;
+            public int blockSize2;
+            public byte[] block2;
+            public byte val;
+        }
+
+        public struct styleElement
+        {
+            public string[] actorNames;
+            public string[] styles;
+            public float[] timeStyles;
+            public int[] Pos;
+        }
+
+        public struct cameraElement
+        {
+            public int[] Pos;
+            public string[] cameraName;
+            public float[] time;
+        }
+
         public struct CameraChore
         {
             public int Pos;
@@ -57,6 +78,7 @@ namespace ChoreTimingEditor
             public bool hasTime;
             public bool hasContribution;
             public bool hasActiveCamera;
+            public bool hasStyleGuide;
             public int unknown1;
             public int unknown2;
             public int unknown3;
@@ -86,30 +108,25 @@ namespace ChoreTimingEditor
             public int subBlockSize;
             public Time[] timeElement;
             public Contribution[] contribElement;
-            //public List<CameraChore> camChoreList;
-            public activeCamera cameras;
+            public cameraElement cameras;
+            public styleElement styles;
             public byte[] subBlockElement;
             public byte[] logicValues; //8 byte of zeros and ones
         }
 
-        public struct  otherElements
+        public struct engineCommands
         {
-            public bool isLandb;
-        }
-
-        public struct importElements
-        {
-            public int unknownValue;
-            public int blockSize1;
-            public byte[] block1;
-            public int blockSize2;
-            public byte[] block2;
-            public byte val;
+            public ulong nameCRC64;
+            public int value;
         }
 
         public class Chore
         {
+            public byte[] header;
             public int blockLength;
+            public byte[] someBytes; //8 bytes of something (in font size of texture blocks)
+            public int engineCommandsCount;
+            public engineCommands[] commands;
             public string fileName;
             public int someValue;
             public float commonTime;
@@ -124,6 +141,7 @@ namespace ChoreTimingEditor
             public int blockSize3;
             public byte[] block3;
             public objectElements[] objects;
+            public byte[] endFileBlock; //If file will be store some data after needed
 
             public Chore()
             {

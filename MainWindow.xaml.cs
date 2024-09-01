@@ -121,6 +121,7 @@ namespace ChoreTimingEditor
                         chore.elements[i].hasTime = false;
                         chore.elements[i].hasContribution = false;
                         chore.elements[i].hasActiveCamera = false;
+                        chore.elements[i].hasStyleGuide = false;
 
                         chore.elements[i].unknown1 = br.ReadInt32();
                         chore.elements[i].unknown2 = br.ReadInt32();
@@ -205,17 +206,109 @@ namespace ChoreTimingEditor
                         int timePos = SearchCRC64Value(chore.elements[i].elementBlock, CRCs.CRC64(0, words.time.ToLower()));
                         int contributionPos = SearchCRC64Value(chore.elements[i].elementBlock, CRCs.CRC64(0, words.contribution.ToLower()));
                         int activeCameraPos = SearchCRC64Value(chore.elements[i].elementBlock, CRCs.CRC64(0, words.activeCamera.ToLower()));
-                        int runtimePos = SearchCRC64Value(chore.elements[i].elementBlock, CRCs.CRC64(0, words.runtimeVisible.ToLower()));
+                        int stylePos = SearchCRC64Value(chore.elements[i].elementBlock, CRCs.CRC64(0, words.styleGuide.ToLower()));
 
                         if (activeCameraPos != -1)
                         {
                             chore.elements[i].hasActiveCamera = true;
-                            chore.elements[i].cameras.Pos = activeCameraPos;
+                            using (MemoryStream ms = new MemoryStream(chore.elements[i].elementBlock))
+                            {
+                                using (BinaryReader mbr = new BinaryReader(ms))
+                                {
+                                    //skip camera pos values and 4 bytes of something
+                                    mbr.BaseStream.Seek(activeCameraPos + 8 + 4, SeekOrigin.Begin);
+
+                                    //Read some block data (probably it will be empty)
+                                    for (int d = 0; d < 2; d++)
+                                    {
+                                        int sizeBlock = mbr.ReadInt32();
+                                        byte[] tmpBlock = mbr.ReadBytes(sizeBlock - 4);
+                                    }
+
+                                    blockLen = mbr.ReadInt32();
+                                    int countCam = mbr.ReadInt32();
+                                    chore.elements[i].cameras.time = new float[countCam];
+                                    chore.elements[i].cameras.Pos = new int[countCam];
+                                    chore.elements[i].cameras.cameraName = new string[countCam];
+
+                                    for (int c = 0; c < countCam; c++)
+                                    {
+                                        chore.elements[i].cameras.Pos[c] = (int)mbr.BaseStream.Position;
+                                        chore.elements[i].cameras.time[c] = mbr.ReadSingle();
+                                        byte zero = mbr.ReadByte();
+                                        int countName = mbr.ReadInt32();
+                                        int blNameSize = mbr.ReadInt32();
+                                        int nameSize = mbr.ReadInt32();
+                                        byte[] tmpName = mbr.ReadBytes(nameSize);
+                                        chore.elements[i].cameras.cameraName[c] = Encoding.ASCII.GetString(tmpName);
+                                    }
+                                }
+                            }
                         }
 
-                        if(runtimePos != -1)
+                        if(stylePos != -1)
                         {
-                            chore.elements[i].visRun.Pos = runtimePos;
+                            chore.elements[i].hasStyleGuide = true;
+                            using (MemoryStream ms = new MemoryStream(chore.elements[i].elementBlock))
+                            {
+                                using (BinaryReader mbr = new BinaryReader(ms))
+                                {
+                                    //skip camera pos values and 4 bytes of something
+                                    mbr.BaseStream.Seek(stylePos + 8 + 4, SeekOrigin.Begin);
+
+                                    //Read some block data (probably it will be empty)
+                                    for (int d = 0; d < 2; d++)
+                                    {
+                                        int sizeBlock = mbr.ReadInt32();
+                                        byte[] tmpBlock = mbr.ReadBytes(sizeBlock - 4);
+                                    }
+
+                                    blockLen = mbr.ReadInt32();
+                                    int countActors = mbr.ReadInt32();
+                                    chore.elements[i].styles.actorNames = new string[countActors];
+
+                                    for (int a = 0; a < countActors; a++)
+                                    {
+                                        float floatVal = mbr.ReadSingle(); //skip read float values because it's just actor names
+                                        byte zero = mbr.ReadByte();
+                                        int countName = mbr.ReadInt32();
+                                        int blNameSize = mbr.ReadInt32();
+                                        int nameSize = mbr.ReadInt32();
+                                        byte[] tmpName = mbr.ReadBytes(nameSize);
+                                        chore.elements[i].styles.actorNames[a] = Encoding.ASCII.GetString(tmpName);
+                                    }
+
+                                    //Skip some values needed for tyle guide
+
+                                    mbr.BaseStream.Seek(20, SeekOrigin.Current);
+
+                                    //Read AGAIN some block data (probably it will be empty)
+                                    for (int d = 0; d < 2; d++)
+                                    {
+                                        int sizeBlock = mbr.ReadInt32();
+                                        byte[] tmpBlock = mbr.ReadBytes(sizeBlock - 4);
+                                    }
+
+                                    blockLen = mbr.ReadInt32();
+                                    int countStyles = mbr.ReadInt32();
+
+                                    chore.elements[i].styles.timeStyles = new float[countStyles];
+                                    chore.elements[i].styles.Pos = new int[countStyles];
+                                    chore.elements[i].styles.styles = new string[countStyles];
+
+                                    for(int s = 0; s < countStyles; s++)
+                                    {
+                                        chore.elements[i].styles.Pos[s] = (int)mbr.BaseStream.Position;
+                                        chore.elements[i].styles.timeStyles[s] = mbr.ReadSingle();
+                                        byte zero = mbr.ReadByte();
+                                        int countName = mbr.ReadInt32();
+                                        int blNameSize = mbr.ReadInt32();
+                                        int nameSize = mbr.ReadInt32();
+                                        byte[] tmpName = mbr.ReadBytes(nameSize);
+                                        chore.elements[i].styles.styles[s] = Encoding.ASCII.GetString(tmpName);
+                                    }
+                                }
+                            }
                         }
 
                         if (timePos != -1)
@@ -988,8 +1081,8 @@ else
 
                 for (int i = 0; i < fi.Length; i++)
                 {
-                    files.files[i] = fi[i].Name.ToLower();
-                    files.CRCs[i] = CRCs.CRC64(0, files.files[i]);
+                    files.files[i] = fi[i].Name;
+                    files.CRCs[i] = CRCs.CRC64(0, files.files[i].ToLower());
                 }
 
                 resorceFolderTB.Text = fbd.SelectedPath;
