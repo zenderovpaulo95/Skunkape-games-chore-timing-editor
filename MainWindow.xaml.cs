@@ -1123,11 +1123,25 @@ else
             contributionTB.Visibility = Visibility.Hidden;
             contributionLabel.Visibility = Visibility.Hidden;
 
+            cameraNameCB.Items.Clear();
+            cameraTimeTB.Text = "";
+            cameraNameCB.Visibility = Visibility.Hidden;
+            cameraNameLabel.Visibility = Visibility.Hidden;
+            cameraTimeLabel.Visibility = Visibility.Hidden;
+            cameraTimeTB.Visibility = Visibility.Hidden;
+
+            actorNameCB.Items.Clear();
+            styleCB.Items.Clear();
+            styleTimeTB.Text = "";
+            styleCB.Visibility = Visibility.Hidden;
+            styleLabel.Visibility = Visibility.Hidden;
+            styleTimeTB.Visibility = Visibility.Hidden;
+            styleTimeLabel.Visibility = Visibility.Hidden;
+            actorNameCB.Visibility = Visibility.Hidden;
+            actorLabel.Visibility = Visibility.Hidden;
+
             if ((elementNamesCB.SelectedIndex != -1) && (objectNamesCB.SelectedIndex != -1))
             {
-                string check_str = chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].hasActiveCamera ? "Yes! There is a camera pos: " + Convert.ToString(chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].cameras.Pos) + ". Block: " + BitConverter.ToString(BitConverter.GetBytes(chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].crc64Name1)) : "There's no cameras :(";
-                acLabel.Content = check_str;
-
                 if (chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].isLandb)
                 {
                     landbRT.Visibility = Visibility.Visible;
@@ -1164,6 +1178,43 @@ else
 
                     contributionCB.SelectedIndex = 0;
                 }
+
+                if(chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].hasActiveCamera)
+                {
+                    for(int i = 0; i < chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].cameras.cameraName.Length; i++)
+                    {
+                        cameraNameCB.Items.Add(chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].cameras.cameraName[i]);
+                    }
+
+                    if(cameraNameCB.Items.Count > 0) cameraNameCB.SelectedIndex = 0;
+
+                    cameraNameCB.Visibility = Visibility.Visible;
+                    cameraNameLabel.Visibility = Visibility.Visible;
+                    cameraTimeLabel.Visibility = Visibility.Visible;
+                    cameraTimeTB.Visibility = Visibility.Visible;
+                }
+
+                if (chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].hasStyleGuide)
+                {
+                    for(int i = 0; i < chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].styles.actorNames.Length; i++)
+                    {
+                        actorNameCB.Items.Add(chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].styles.actorNames[i]);
+                    }
+
+                    for(int i = 0; i < chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].styles.styles.Length; i++)
+                    {
+                        styleCB.Items.Add(chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].styles.styles[i]);
+                    }
+
+                    if(actorNameCB.Items.Count > 0) actorNameCB.SelectedIndex = 0;
+                    if(styleCB.Items.Count > 0) styleCB.SelectedIndex = 0;
+
+                    actorLabel.Visibility = Visibility.Visible;
+                    actorNameCB.Visibility = Visibility.Visible;
+                    styleCB.Visibility = Visibility.Visible;
+                    styleTimeLabel.Visibility = Visibility.Visible;
+                    styleTimeTB.Visibility = Visibility.Visible;
+                }
             }
         }
 
@@ -1180,6 +1231,22 @@ else
             if(timeCB.SelectedIndex != -1)
             {
                 timeTB.Text = Convert.ToString(chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].timeElement[timeCB.SelectedIndex].timeElement);
+            }
+        }
+
+        private void cameraNameCB_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (cameraNameCB.SelectedIndex != -1)
+            {
+                cameraTimeTB.Text = Convert.ToString(chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].cameras.time[cameraNameCB.SelectedIndex]);
+            }
+        }
+
+        private void styleCB_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if(styleCB.SelectedIndex != -1)
+            {
+                styleTimeTB.Text = Convert.ToString(chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].styles.timeStyles[styleCB.SelectedIndex]);
             }
         }
     }

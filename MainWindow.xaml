@@ -55,6 +55,15 @@
         <TextBox x:Name="contributionTB" HorizontalAlignment="Left" Margin="115,430,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120" Visibility="Hidden"/>
         <Button x:Name="timeBtn" Content="Change" HorizontalAlignment="Left" Margin="256,324,0,0" VerticalAlignment="Top" Width="83" Visibility="Hidden"/>
         <Button x:Name="contributionBtn" Content="Change" HorizontalAlignment="Left" Margin="256,430,0,0" VerticalAlignment="Top" Width="84" Visibility="Hidden"/>
-        <Label x:Name="acLabel" Content="Label" HorizontalAlignment="Left" Margin="393,450,0,0" VerticalAlignment="Top"/>
+        <ComboBox x:Name="cameraNameCB" HorizontalAlignment="Left" Margin="516,273,0,0" VerticalAlignment="Top" Width="240" SelectionChanged="cameraNameCB_SelectionChanged"/>
+        <ComboBox x:Name="actorNameCB" HorizontalAlignment="Left" Margin="516,429,0,0" VerticalAlignment="Top" Width="240"/>
+        <ComboBox x:Name="styleCB" HorizontalAlignment="Left" Margin="516,478,0,0" VerticalAlignment="Top" Width="240" SelectionChanged="styleCB_SelectionChanged"/>
+        <Label x:Name="cameraNameLabel" Content="Camera:" HorizontalAlignment="Left" Margin="446,270,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="actorLabel" Content="Actor:" HorizontalAlignment="Left" Margin="458,424,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="styleLabel" Content="Style:" HorizontalAlignment="Left" Margin="462,476,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="cameraTimeLabel" Content="Time:" HorizontalAlignment="Left" Margin="461,320,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="cameraTimeTB" HorizontalAlignment="Left" Margin="516,324,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="134"/>
+        <Label x:Name="styleTimeLabel" Content="Time:" HorizontalAlignment="Left" Margin="461,525,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="styleTimeTB" HorizontalAlignment="Left" Margin="516,529,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="134"/>
     </Grid>
 </Window>
