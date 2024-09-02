@@ -80,23 +80,27 @@ namespace ChoreTimingEditor
             {
                 FileStream fs = new FileStream(ofd.FileName, FileMode.Open);
                 BinaryReader br = new BinaryReader(fs);
-                byte[] header = br.ReadBytes(4);
-                uint size = br.ReadUInt32();
-                byte[] someValues = br.ReadBytes(8);
-                int count = br.ReadInt32();
+
                 chore = new Chores.Chore();
+
+                chore.header = br.ReadBytes(4);
+                chore.blockLength = br.ReadUInt32();
+                chore.someBytes = br.ReadBytes(8);
+                chore.engineCommandsCount = br.ReadInt32();
                 InEngineWords words = new InEngineWords();
 
                 bool hasChoreResource = false;
                 bool hasAnimation = false;
 
-                for (int i = 0; i < count; i++)
-                {
-                    byte[] tmp = br.ReadBytes(8);
-                    byte[] tmp2 = br.ReadBytes(4);
+                chore.commands = new Chores.engineCommands[chore.engineCommandsCount];
 
-                    if (BitConverter.ToUInt64(tmp, 0) == CRCs.CRC64(0, words.animation.ToLower())) hasAnimation = true;
-                    if (BitConverter.ToUInt64(tmp, 0) == CRCs.CRC64(0, words.choreResource.ToLower())) hasChoreResource = true;
+                for (int i = 0; i < chore.engineCommandsCount; i++)
+                {
+                    chore.commands[i].nameCRC64 = br.ReadUInt64();
+                    chore.commands[i].value = br.ReadUInt32();
+
+                    if (chore.commands[i].nameCRC64 == CRCs.CRC64(0, words.animation.ToLower())) hasAnimation = true;
+                    if (chore.commands[i].nameCRC64 == CRCs.CRC64(0, words.choreResource.ToLower())) hasChoreResource = true;
                 }
 
                 if (hasAnimation || hasChoreResource)
@@ -382,6 +386,13 @@ namespace ChoreTimingEditor
                         chore.objects[i].name2 = Encoding.ASCII.GetString(tmp);
                         chore.objects[i].blockSize = br.ReadInt32();
                         chore.objects[i].block = br.ReadBytes(chore.objects[i].blockSize - 4);
+                    }
+
+                    chore.endFileBlock = null;
+
+                    if(br.BaseStream.Position < br.BaseStream.Length)
+                    {
+                        chore.endFileBlock = br.ReadBytes((int)(br.BaseStream.Length - br.BaseStream.Position));
                     }
 
                     if (objectNamesCB.Items.Count > 0) objectNamesCB.Items.Clear();

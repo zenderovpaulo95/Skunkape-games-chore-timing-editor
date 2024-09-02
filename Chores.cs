@@ -117,13 +117,13 @@ namespace ChoreTimingEditor
         public struct engineCommands
         {
             public ulong nameCRC64;
-            public int value;
+            public uint value;
         }
 
         public class Chore
         {
             public byte[] header;
-            public int blockLength;
+            public uint blockLength;
             public byte[] someBytes; //8 bytes of something (in font size of texture blocks)
             public int engineCommandsCount;
             public engineCommands[] commands;
