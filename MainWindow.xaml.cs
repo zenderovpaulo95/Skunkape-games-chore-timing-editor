@@ -405,6 +405,8 @@ namespace ChoreTimingEditor
                     }
 
                     if (objectNamesCB.Items.Count > 0) objectNamesCB.SelectedIndex = 0;
+
+                    ChoreFilePath = ofd.FileName;
                 }
                 else
                 {
@@ -1298,12 +1300,15 @@ else
 
                     for (int c = 0; c < chore.countElements; c++)
                     {
-                        for (int t = 0; t < chore.elements[c].timeElement.Length; t++)
+                        if (chore.elements[c].hasTime)
                         {
-                            if (chore.elements[c].hasTime && chore.elements[c].timeElement[t].timeElement > timeStart)
+                            for (int t = 0; t < chore.elements[c].timeElement.Length; t++)
                             {
-                                chore.elements[c].timeElement[t].timeElement += diff;
-                                chore.elements[c].timeElement[t].modifiedTime = true;
+                                if (chore.elements[c].hasTime && chore.elements[c].timeElement[t].timeElement > timeStart)
+                                {
+                                    chore.elements[c].timeElement[t].timeElement += diff;
+                                    chore.elements[c].timeElement[t].modifiedTime = true;
+                                }
                             }
                         }
 
@@ -1339,7 +1344,7 @@ else
                 {
                     float timeStart = chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].contribElement[0].timeContribution;
 
-                    for (int i = 1; i < chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].timeElement.Length; i++)
+                    for (int i = 1; i < chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].contribElement.Length; i++)
                     {
                         if ((chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].contribElement[i].timeContribution != chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].contribElement[i - 1].timeContribution)
                             || chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].contribElement[i - 1].modifiedTime)
@@ -1351,12 +1356,15 @@ else
 
                     for (int c = 0; c < chore.countElements; c++)
                     {
-                        for (int t = 0; t < chore.elements[c].contribElement.Length; t++)
+                        if (chore.elements[c].hasContribution)
                         {
-                            if (chore.elements[c].hasTime && chore.elements[c].contribElement[t].timeContribution > timeStart)
+                            for (int t = 0; t < chore.elements[c].contribElement.Length; t++)
                             {
-                                chore.elements[c].contribElement[t].timeContribution += diff;
-                                //chore.elements[c].timeElement[t].modifiedTime = true;
+                                if (chore.elements[c].hasTime && chore.elements[c].contribElement[t].timeContribution > timeStart)
+                                {
+                                    chore.elements[c].contribElement[t].timeContribution += diff;
+                                    //chore.elements[c].timeElement[t].modifiedTime = true;
+                                }
                             }
                         }
 
@@ -1383,6 +1391,8 @@ else
                         }
                     }
                 }
+
+                chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].elementTime = newValue;
             }
             catch
             {
@@ -1392,7 +1402,183 @@ else
 
         private void saveChoreBtn_Click(object sender, RoutedEventArgs e)
         {
+            if(File.Exists(ChoreFilePath))
+            {
+                File.Delete(ChoreFilePath);
 
+                FileStream fs = new FileStream(ChoreFilePath, FileMode.CreateNew);
+                BinaryWriter bw = new BinaryWriter(fs);
+                bw.Write(chore.header);
+                bw.Write(chore.blockLength);
+                bw.Write(chore.someBytes);
+                bw.Write(chore.engineCommandsCount);
+
+                for (int i = 0; i < chore.engineCommandsCount; i++)
+                {
+                    bw.Write(chore.commands[i].nameCRC64);
+                    bw.Write(chore.commands[i].value);
+                }
+
+                byte[] tmp = Encoding.ASCII.GetBytes(chore.fileName);
+                int blockLen = tmp.Length + 8;
+                int len = tmp.Length;
+                bw.Write(blockLen);
+                bw.Write(len);
+                bw.Write(tmp);
+                bw.Write(chore.someValue);
+                bw.Write(chore.commonTime);
+                bw.Write(chore.countElements);
+                bw.Write(chore.countObjects);
+
+                for(int i = 0; i < chore.countElements; i++)
+                {
+                    bw.Write(chore.elements[i].unknown1);
+                    bw.Write(chore.elements[i].unknown2);
+                    bw.Write(chore.elements[i].unknown3);
+                    bw.Write(chore.elements[i].unknownLen1);
+                    bw.Write(chore.elements[i].block1);
+                    bw.Write(chore.elements[i].unknownLen2);
+                    bw.Write(chore.elements[i].block2);
+
+                    if (chore.elements[i].unknown3 == 0)
+                    {
+                        bw.Write(chore.elements[i].imports.unknownValue);
+                        bw.Write(chore.elements[i].imports.blockSize1);
+                        bw.Write(chore.elements[i].imports.block1);
+                        bw.Write(chore.elements[i].imports.blockSize2);
+                        bw.Write(chore.elements[i].imports.block2);
+                        bw.Write(chore.elements[i].imports.val);
+                    }
+
+                    bw.Write(chore.elements[i].unknownLen3);
+                    bw.Write(chore.elements[i].block3);
+
+                    if (chore.elements[i].unknownPropBytes != null) bw.Write(chore.elements[i].unknownPropBytes);
+
+                    bw.Write(chore.elements[i].value1);
+                    bw.Write(chore.elements[i].crc64Name1);
+
+                    if (chore.elements[i].hasTime)
+                    {
+                        using (MemoryStream ms = new MemoryStream(chore.elements[i].elementBlock))
+                        {
+                            using (BinaryWriter mbw = new BinaryWriter(ms))
+                            {
+                                for (int t = 0; t < chore.elements[i].timeElement.Length; t++)
+                                {
+                                    mbw.BaseStream.Seek(chore.elements[i].timeElement[t].Pos, SeekOrigin.Begin);
+                                    mbw.Write(chore.elements[i].timeElement[t].timeElement);
+                                }
+                            }
+
+                            //chore.elements[i].elementBlock = ms.ToArray();
+                        }
+                    }
+                    
+                    if (chore.elements[i].hasContribution)
+                    {
+                        using (MemoryStream ms = new MemoryStream(chore.elements[i].elementBlock))
+                        {
+                            using (BinaryWriter mbw = new BinaryWriter(ms))
+                            {
+                                for (int t = 0; t < chore.elements[i].contribElement.Length; t++)
+                                {
+                                    mbw.BaseStream.Seek(chore.elements[i].contribElement[t].Pos, SeekOrigin.Begin);
+                                    mbw.Write(chore.elements[i].contribElement[t].timeContribution);
+                                }
+                            }
+
+                            //chore.elements[i].elementBlock = ms.ToArray();
+                        }
+                    }
+                    
+                    if (chore.elements[i].hasActiveCamera)
+                    {
+                        using (MemoryStream ms = new MemoryStream(chore.elements[i].elementBlock))
+                        {
+                            using (BinaryWriter mbw = new BinaryWriter(ms))
+                            {
+                                for (int t = 0; t < chore.elements[i].cameras.time.Length; t++)
+                                {
+                                    mbw.BaseStream.Seek(chore.elements[i].cameras.Pos[t], SeekOrigin.Begin);
+                                    mbw.Write(chore.elements[i].cameras.time[t]);
+                                }
+                            }
+
+                            //chore.elements[i].elementBlock = ms.ToArray();
+                        }
+                    }
+                    
+                    if (chore.elements[i].hasStyleGuide)
+                    {
+                        using (MemoryStream ms = new MemoryStream(chore.elements[i].elementBlock))
+                        {
+                            using (BinaryWriter mbw = new BinaryWriter(ms))
+                            {
+                                for (int t = 0; t < chore.elements[i].styles.timeStyles.Length; t++)
+                                {
+                                    mbw.BaseStream.Seek(chore.elements[i].styles.Pos[t], SeekOrigin.Begin);
+                                    mbw.Write(chore.elements[i].styles.timeStyles[t]);
+                                }
+                            }
+
+                            //chore.elements[i].elementBlock = ms.ToArray();
+                        }
+                    }
+
+                    bw.Write(chore.elements[i].elementTime);
+                    bw.Write(chore.elements[i].value2);
+                    bw.Write(chore.elements[i].value3);
+                    bw.Write(chore.elements[i].unknownLen4);
+                    bw.Write(chore.elements[i].block4);
+                    bw.Write(chore.elements[i].blockLen);
+                    bw.Write(chore.elements[i].blockName);
+
+                    bw.Write(chore.elements[i].blockSize);
+                    bw.Write(chore.elements[i].elementBlock);
+                    bw.Write(chore.elements[i].subBlockSize);
+                    bw.Write(chore.elements[i].subBlockElement);
+                    bw.Write(chore.elements[i].logicValues);
+                }
+
+                bw.Write(chore.blockSize1);
+                bw.Write(chore.block1);
+                bw.Write(chore.blockSize2);
+                bw.Write(chore.block2);
+                bw.Write(chore.blockSize3);
+                bw.Write(chore.block3);
+
+                for (int i = 0; i < chore.countObjects; i++)
+                {
+                    tmp = Encoding.ASCII.GetBytes(chore.objects[i].name1);
+                    bw.Write(chore.objects[i].blockNameLen1);
+                    bw.Write(chore.objects[i].nameLen1);
+                    bw.Write(tmp);
+                    bw.Write(chore.objects[i].someValue);
+                    bw.Write(chore.objects[i].blockElementLen);
+                    bw.Write(chore.objects[i].elementsCount);
+
+                    for (int c = 0; c < chore.objects[i].elementsCount; c++)
+                    {
+                        bw.Write(chore.objects[i].elements[c]);
+                    }
+
+                    bw.Write(chore.objects[i].blockElementSize);
+                    bw.Write(chore.objects[i].blockElement);
+                    bw.Write(chore.objects[i].someValue2);
+                    bw.Write(chore.objects[i].blockNameLen2);
+                    bw.Write(chore.objects[i].nameLen2);
+                    tmp = Encoding.ASCII.GetBytes(chore.objects[i].name2);
+                    bw.Write(tmp);
+                    bw.Write(chore.objects[i].blockSize);
+                    bw.Write(chore.objects[i].block);
+                }
+
+                if (chore.endFileBlock != null) bw.Write(chore.endFileBlock);
+
+                bw.Close();
+                fs.Close();
+            }
         }
     }
 }
