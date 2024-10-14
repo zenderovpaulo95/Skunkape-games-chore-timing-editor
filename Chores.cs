@@ -65,12 +65,12 @@ namespace ChoreTimingEditor
             public float[] time;
         }
 
-        public struct CameraChore
+       /*public struct CameraChore
         {
             public int Pos;
             public float timeChore;
             public string nameCamChore;
-        }
+        }*/
 
         public struct choreElements
         {
@@ -79,6 +79,7 @@ namespace ChoreTimingEditor
             public bool hasContribution;
             public bool hasActiveCamera;
             public bool hasStyleGuide;
+            public bool isPropBlock;
             public int unknown1;
             public int unknown2;
             public int unknown3;

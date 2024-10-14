@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="Skunkape games chore timing editor" Height="650" Width="800" ResizeMode="NoResize">
     <Grid>
-        <Button x:Name="choreFile" Content="load chore" HorizontalAlignment="Left" Margin="574,50,0,0" VerticalAlignment="Top" Width="111" Click="Button_Click"/>
+        <Button x:Name="choreFile" Content="load chore" HorizontalAlignment="Left" Margin="574,50,0,0" VerticalAlignment="Top" Width="91" Click="Button_Click"/>
         <TextBox x:Name="inputFile" HorizontalAlignment="Left" Height="18" Margin="38,51,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="504"/>
         <ComboBox x:Name="cb" HorizontalAlignment="Left" Margin="42,173,0,0" VerticalAlignment="Top" Width="282" Height="24" SelectionChanged="cb_SelectionChanged" d:IsHidden="True" Visibility="Hidden"/>
         <RichTextBox x:Name="landbRT" HorizontalAlignment="Left" Height="105" Margin="376,262,0,0" VerticalAlignment="Top" Width="380" Visibility="Hidden">
@@ -27,7 +27,7 @@
         <TextBox x:Name="folderPath" HorizontalAlignment="Left" Height="18" Margin="38,13,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="504"/>
         <Button x:Name="saveBtn" Content="Save chore" HorizontalAlignment="Left" Margin="54,558,0,0" VerticalAlignment="Top" Width="92" Click="saveBtn_Click" d:IsHidden="True" Visibility="Hidden"/>
         <Button x:Name="changeBtn" Content="Change actor's speech time and recalculate next actors' speech timings" HorizontalAlignment="Left" Margin="367,307,0,0" VerticalAlignment="Top" Width="427" Click="changeBtn_Click" d:IsHidden="True" Visibility="Hidden"/>
-        <ComboBox x:Name="cam_cb" HorizontalAlignment="Left" Margin="42,365,0,0" VerticalAlignment="Top" Width="282" Height="24" SelectionChanged="cam_cb_changed" d:IsHidden="True" Visibility="Hidden"/>
+        <ComboBox x:Name="cam_cb" HorizontalAlignment="Left" Margin="42,365,0,0" VerticalAlignment="Top" Width="282" Height="24" SelectionChanged="cam_cb_changed" Visibility="Hidden" d:IsHidden="True"/>
         <TextBox x:Name="camTime" HorizontalAlignment="Left" Height="22" Margin="560,367,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120" d:IsHidden="True" Visibility="Hidden"/>
         <Label Content="Time next camera position:" HorizontalAlignment="Left" Margin="393,365,0,0" VerticalAlignment="Top" Height="24" Width="153" d:IsHidden="True" Visibility="Hidden"/>
         <Button x:Name="anmFile" Content="load anm file" HorizontalAlignment="Left" Margin="574,87,0,0" VerticalAlignment="Top" Width="111" Click="anmFile_Click"/>
@@ -35,7 +35,7 @@
         <TextBox x:Name="timeAnm" HorizontalAlignment="Left" Height="22" Margin="204,514,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120" d:IsHidden="True" Visibility="Hidden"/>
         <Label Content="Time of animation:" HorizontalAlignment="Left" Margin="82,512,0,0" VerticalAlignment="Top" d:IsHidden="True" Visibility="Hidden"/>
         <Button x:Name="changeAnmBtn" Content="Изменить длину анимации" HorizontalAlignment="Left" Margin="367,512,0,0" VerticalAlignment="Top" Width="179" Click="changeAnmBtn_Click" d:IsHidden="True" Visibility="Hidden"/>
-        <Button x:Name="saveAnmBtn" Content="Save anm file" HorizontalAlignment="Left" Margin="197,558,0,0" VerticalAlignment="Top" Width="127" Click="saveAnmBtn_Click" d:IsHidden="True" Visibility="Hidden"/>
+        <Button x:Name="saveAnmBtn" Content="Save anm file" HorizontalAlignment="Left" Margin="197,558,0,0" VerticalAlignment="Top" Width="127" Click="saveAnmBtn_Click" Visibility="Hidden" d:IsHidden="True"/>
         <Button x:Name="changeCamBtn" Content="Change time next camera position" HorizontalAlignment="Left" Margin="367,407,0,0" VerticalAlignment="Top" Width="231" Click="changeCamBtn_Click" d:IsHidden="True" Visibility="Hidden"/>
         <ComboBox x:Name="contribCB" HorizontalAlignment="Left" Margin="42,468,0,0" VerticalAlignment="Top" Width="280" SelectionChanged="contribCB_SelectionChanged" d:IsHidden="True" Visibility="Hidden"/>
         <TextBox x:Name="begContrTime" HorizontalAlignment="Left" Margin="382,469,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120" d:IsHidden="True" Visibility="Hidden"/>
@@ -65,5 +65,9 @@
         <TextBox x:Name="cameraTimeTB" HorizontalAlignment="Left" Margin="516,324,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="134"/>
         <Label x:Name="styleTimeLabel" Content="Time:" HorizontalAlignment="Left" Margin="461,525,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="styleTimeTB" HorizontalAlignment="Left" Margin="516,529,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="134"/>
+        <Label x:Name="timeBlockLabel" Content="Time block:" HorizontalAlignment="Left" Margin="82,525,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="timeBlockTB" HorizontalAlignment="Left" Margin="169,530,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
+        <Button x:Name="changeTimeBtn" Content="Change" HorizontalAlignment="Left" Margin="316,529,0,0" VerticalAlignment="Top" Click="changeTimeBtn_Click"/>
+        <Button x:Name="saveChoreBtn" Content="Save chore" HorizontalAlignment="Left" Margin="689,51,0,0" VerticalAlignment="Top" Width="101" Click="saveChoreBtn_Click"/>
     </Grid>
 </Window>
