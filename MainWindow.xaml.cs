@@ -363,6 +363,13 @@ namespace ChoreTimingEditor
                     chore.blockSize3 = br.ReadInt32();
                     chore.block3 = br.ReadBytes(chore.blockSize3 - 4);
 
+                    chore.unknownElement = null;
+
+                    byte[] check = new byte[4];
+                    Array.Copy(chore.block1, 8, check, 0, check.Length);
+
+                    if (BitConverter.ToInt32(check, 0) != 4) chore.unknownElement = br.ReadBytes(16);
+
                     for (int i = 0; i < chore.countObjects; i++)
                     {
                         chore.objects[i].blockNameLen1 = br.ReadInt32();
@@ -1284,6 +1291,7 @@ else
             {
                 float newValue = Convert.ToSingle(timeBlockTB.Text);
                 float diff = newValue - chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].elementTime;
+                int ind = chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex];
                 chore.commonTime += diff;
                 bool modifiedCameras = false;
                 bool modifiedStyles = false;
@@ -1300,7 +1308,7 @@ else
 
                     for (int c = 0; c < chore.countElements; c++)
                     {
-                        if (chore.elements[c].hasTime)
+                        if (chore.elements[c].hasTime && c != ind)
                         {
                             for (int t = 0; t < chore.elements[c].timeElement.Length; t++)
                             {
@@ -1356,7 +1364,7 @@ else
 
                     for (int c = 0; c < chore.countElements; c++)
                     {
-                        if (chore.elements[c].hasContribution)
+                        if (chore.elements[c].hasContribution && c != ind)
                         {
                             for (int t = 0; t < chore.elements[c].contribElement.Length; t++)
                             {
@@ -1392,7 +1400,8 @@ else
                     }
                 }
 
-                chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].elementTime = newValue;
+                chore.elements[ind].elementTime = newValue;
+                timeBlockTB.Text = Convert.ToString(chore.elements[ind].elementTime);
             }
             catch
             {
@@ -1547,6 +1556,8 @@ else
                 bw.Write(chore.block2);
                 bw.Write(chore.blockSize3);
                 bw.Write(chore.block3);
+
+                if (chore.unknownElement != null) bw.Write(chore.unknownElement);
 
                 for (int i = 0; i < chore.countObjects; i++)
                 {

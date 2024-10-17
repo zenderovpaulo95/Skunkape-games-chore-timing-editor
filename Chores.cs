@@ -141,6 +141,7 @@ namespace ChoreTimingEditor
             public byte[] block2;
             public int blockSize3;
             public byte[] block3;
+            public byte[] unknownElement; //16 bytes of something in some chore files
             public objectElements[] objects;
             public byte[] endFileBlock; //If file will be store some data after needed
 
