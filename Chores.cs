@@ -65,6 +65,13 @@ namespace ChoreTimingEditor
             public float[] time;
         }
 
+        public struct subBlockTimings
+        {
+            public int count;
+            public float[] timeElements; //powered by two
+            public int Pos;
+        }
+
        /*public struct CameraChore
         {
             public int Pos;
@@ -112,6 +119,7 @@ namespace ChoreTimingEditor
             public cameraElement cameras;
             public styleElement styles;
             public byte[] subBlockElement;
+            public subBlockTimings subBlockTimings;
             public byte[] logicValues; //8 byte of zeros and ones
         }
 

@@ -19,7 +19,7 @@
         </RichTextBox>
         <TextBox x:Name="timePhrase" HorizontalAlignment="Left" Height="22" Margin="204,406,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120" d:IsHidden="True" Visibility="Hidden"/>
         <Label Content="Timing:" HorizontalAlignment="Left" Margin="115,404,0,0" VerticalAlignment="Top" d:IsHidden="True" Visibility="Hidden"/>
-        <TextBox x:Name="begTime" HorizontalAlignment="Left" Height="22" Margin="204,223,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120" d:IsHidden="True" Visibility="Hidden"/>
+        <TextBox x:Name="begTime" HorizontalAlignment="Left" Height="22" Margin="204,223,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120" Visibility="Hidden" d:IsHidden="True"/>
         <Label Content="Begining:" HorizontalAlignment="Left" Margin="105,221,0,0" VerticalAlignment="Top" d:IsHidden="True" Visibility="Hidden"/>
         <TextBox x:Name="endTime" HorizontalAlignment="Left" Height="22" Margin="204,271,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120" d:IsHidden="True" Visibility="Hidden"/>
         <Label Content="Ending:" HorizontalAlignment="Left" Margin="115,269,0,0" VerticalAlignment="Top" d:IsHidden="True" Visibility="Hidden"/>
@@ -42,7 +42,7 @@
         <TextBox x:Name="endContrTime" HorizontalAlignment="Left" Margin="516,469,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120" d:IsHidden="True" Visibility="Hidden"/>
         <Button x:Name="changeTimingBtn" Content="Change actor's speech time" HorizontalAlignment="Left" Margin="367,282,0,0" VerticalAlignment="Top" Width="313" Click="changeTimingBtn_Click" d:IsHidden="True" Visibility="Hidden"/>
         <Button x:Name="changeValuesBtn" Content="Изменить" HorizontalAlignment="Left" Margin="680,469,0,0" VerticalAlignment="Top" Click="changeValuesBtn_Click" d:IsHidden="True" Visibility="Hidden"/>
-        <Button x:Name="extractDataBtn" Content="Extract chore data" HorizontalAlignment="Left" Margin="442,568,0,0" VerticalAlignment="Top" Width="223" Click="extractDataBtn_Click" d:IsHidden="True" Visibility="Hidden"/>
+        <Button x:Name="extractDataBtn" Content="Extract chore data" HorizontalAlignment="Left" Margin="442,568,0,0" VerticalAlignment="Top" Width="223" Click="extractDataBtn_Click" Visibility="Hidden" d:IsHidden="True"/>
         <Button x:Name="resourceFolderBtn" Content="set resource files folder" HorizontalAlignment="Left" Margin="574,133,0,0" VerticalAlignment="Top" Width="182" Click="resourceFolderBtn_Click"/>
         <TextBox x:Name="resorceFolderTB" HorizontalAlignment="Left" Height="18" Margin="38,134,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="504"/>
         <ComboBox x:Name="objectNamesCB" HorizontalAlignment="Left" Margin="38,185,0,0" VerticalAlignment="Top" Width="268" SelectionChanged="objectNamesCB_SelectionChanged"/>
@@ -53,7 +53,7 @@
         <Label x:Name="contributionLabel" Content="Contribution:" HorizontalAlignment="Left" Margin="24,373,0,0" VerticalAlignment="Top" Visibility="Hidden"/>
         <ComboBox x:Name="contributionCB" HorizontalAlignment="Left" Margin="115,377,0,0" VerticalAlignment="Top" Width="120" SelectionChanged="contributionCB_SelectionChanged" Visibility="Hidden"/>
         <TextBox x:Name="contributionTB" HorizontalAlignment="Left" Margin="115,430,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120" Visibility="Hidden"/>
-        <Button x:Name="timeBtn" Content="Change" HorizontalAlignment="Left" Margin="256,324,0,0" VerticalAlignment="Top" Width="83" Visibility="Hidden"/>
+        <Button x:Name="timeBtn" Content="Change" HorizontalAlignment="Left" Margin="256,324,0,0" VerticalAlignment="Top" Width="83" Visibility="Hidden" Click="timeBtn_Click"/>
         <Button x:Name="contributionBtn" Content="Change" HorizontalAlignment="Left" Margin="256,430,0,0" VerticalAlignment="Top" Width="84" Visibility="Hidden"/>
         <ComboBox x:Name="cameraNameCB" HorizontalAlignment="Left" Margin="516,273,0,0" VerticalAlignment="Top" Width="240" SelectionChanged="cameraNameCB_SelectionChanged"/>
         <ComboBox x:Name="actorNameCB" HorizontalAlignment="Left" Margin="516,429,0,0" VerticalAlignment="Top" Width="240"/>
@@ -68,6 +68,7 @@
         <Label x:Name="timeBlockLabel" Content="Time block:" HorizontalAlignment="Left" Margin="82,525,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="timeBlockTB" HorizontalAlignment="Left" Margin="169,530,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
         <Button x:Name="changeTimeBtn" Content="Change" HorizontalAlignment="Left" Margin="316,529,0,0" VerticalAlignment="Top" Click="changeTimeBtn_Click"/>
-        <Button x:Name="saveChoreBtn" Content="Save chore" HorizontalAlignment="Left" Margin="689,51,0,0" VerticalAlignment="Top" Width="101" Click="saveChoreBtn_Click"/>
+        <Button x:Name="saveChoreBtn" Content="Save chore" HorizontalAlignment="Left" Margin="675,50,0,0" VerticalAlignment="Top" Width="101" Click="saveChoreBtn_Click"/>
+        <CheckBox x:Name="onlyOneBlockChangeCB" Content="Change only this element block" HorizontalAlignment="Left" Margin="169,563,0,0" VerticalAlignment="Top"/>
     </Grid>
 </Window>

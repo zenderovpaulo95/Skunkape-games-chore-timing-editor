@@ -213,6 +213,7 @@ namespace ChoreTimingEditor
                         int contributionPos = SearchCRC64Value(chore.elements[i].elementBlock, CRCs.CRC64(0, words.contribution.ToLower()));
                         int activeCameraPos = SearchCRC64Value(chore.elements[i].elementBlock, CRCs.CRC64(0, words.activeCamera.ToLower()));
                         int stylePos = SearchCRC64Value(chore.elements[i].elementBlock, CRCs.CRC64(0, words.styleGuide.ToLower()));
+                        string an = BitConverter.ToString(BitConverter.GetBytes(CRCs.CRC64(0, words.absoluteNode.ToLower())));
 
                         if (activeCameraPos != -1)
                         {
@@ -354,6 +355,29 @@ namespace ChoreTimingEditor
                                 contributionPos += 13;
                             }
                         }
+
+                        if (chore.elements[i].subBlockElement.Length >= 8)
+                        {
+                            using (MemoryStream ms = new MemoryStream(chore.elements[i].subBlockElement))
+                            {
+                                using (BinaryReader mbr = new BinaryReader(ms))
+                                {
+                                    chore.elements[i].subBlockTimings.count = mbr.ReadInt32();
+
+                                    if (chore.elements[i].subBlockTimings.count > 0)
+                                    {
+                                        chore.elements[i].subBlockTimings.timeElements = new float[chore.elements[i].subBlockTimings.count * 2];
+
+                                        chore.elements[i].subBlockTimings.Pos = (int)mbr.BaseStream.Position;
+
+                                        for (int c = 0; c < chore.elements[i].subBlockTimings.count * 2; c++)
+                                        {
+                                            chore.elements[i].subBlockTimings.timeElements[c] = mbr.ReadSingle();
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
 
                     chore.blockSize1 = br.ReadInt32();
@@ -368,7 +392,20 @@ namespace ChoreTimingEditor
                     byte[] check = new byte[4];
                     Array.Copy(chore.block1, 8, check, 0, check.Length);
 
-                    if (BitConverter.ToInt32(check, 0) != 4) chore.unknownElement = br.ReadBytes(16);
+                    int pos = (int)br.BaseStream.Position;
+                    byte[] check1 = br.ReadBytes(8);
+                    byte[] check2 = br.ReadBytes(8);
+
+                    bool propJunk = false;
+
+                    if(BitConverter.ToUInt64(check1, 0) == BitConverter.ToUInt64(check2, 0))
+                    {
+                        propJunk = true;
+                    }
+
+                    br.BaseStream.Seek(pos, SeekOrigin.Begin);
+
+                    if (BitConverter.ToInt32(check, 0) == 0x404 || propJunk) chore.unknownElement = br.ReadBytes(16);
 
                     for (int i = 0; i < chore.countObjects; i++)
                     {
@@ -376,6 +413,27 @@ namespace ChoreTimingEditor
                         chore.objects[i].nameLen1 = br.ReadInt32();
                         tmp = br.ReadBytes(chore.objects[i].nameLen1);
                         chore.objects[i].name1 = Encoding.ASCII.GetString(tmp);
+                        string status = chore.objects[i].name1 + " blocking";
+
+                        if (chore.elements.Any(x => x.crc64Name1 == CRCs.CRC64(0, status.ToLower())))
+                        {
+                            int index = chore.elements.ToList().FindIndex(x => x.crc64Name1 == CRCs.CRC64(0, status.ToLower()));
+                            chore.elements[index].name1 = status;
+                        }
+
+                        if (chore.elements.Any(x => x.crc64Name1 == CRCs.CRC64(0, chore.objects[i].name1.ToLower())))
+                        {
+                            int index = chore.elements.ToList().FindIndex(x => x.crc64Name1 == CRCs.CRC64(0, chore.objects[i].name1.ToLower()));
+                            chore.elements[index].name1 = chore.objects[i].name1;
+                        }
+
+                        status = "Use Private Node1";
+                        if (chore.elements.Any(x => x.crc64Name1 == CRCs.CRC64(0, status.ToLower())))
+                        {
+                            int index = chore.elements.ToList().FindIndex(x => x.crc64Name1 == CRCs.CRC64(0, status.ToLower()));
+                            chore.elements[index].name1 = status;
+                        }
+
                         chore.objects[i].someValue = br.ReadInt32();
                         chore.objects[i].blockElementLen = br.ReadInt32();
                         chore.objects[i].elementsCount = br.ReadInt32();
@@ -1290,118 +1348,164 @@ else
             try
             {
                 float newValue = Convert.ToSingle(timeBlockTB.Text);
-                float diff = newValue - chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].elementTime;
                 int ind = chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex];
-                chore.commonTime += diff;
-                bool modifiedCameras = false;
-                bool modifiedStyles = false;
-
-                if (chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].hasTime)
-                {
-                    float timeStart = chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].timeElement[0].timeElement;
-
-                    for (int i = 1; i < chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].timeElement.Length; i++)
-                    {
-                        chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].timeElement[i].timeElement += diff;
-                        chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].timeElement[i].modifiedTime = true;
-                    }
-
-                    for (int c = 0; c < chore.countElements; c++)
-                    {
-                        if (chore.elements[c].hasTime && c != ind)
-                        {
-                            for (int t = 0; t < chore.elements[c].timeElement.Length; t++)
-                            {
-                                if (chore.elements[c].hasTime && chore.elements[c].timeElement[t].timeElement > timeStart)
-                                {
-                                    chore.elements[c].timeElement[t].timeElement += diff;
-                                    chore.elements[c].timeElement[t].modifiedTime = true;
-                                }
-                            }
-                        }
-
-                        if (chore.elements[c].hasActiveCamera)
-                        {
-                            for(int t = 0; t < chore.elements[c].cameras.time.Length; t++)
-                            {
-                                if (chore.elements[c].cameras.time[t] > timeStart)
-                                {
-                                    chore.elements[c].cameras.time[t] += diff;
-                                }
-                            }
-
-                            modifiedCameras = true;
-                        }
-
-                        if (chore.elements[c].hasStyleGuide)
-                        {
-                            for (int t = 0; t < chore.elements[c].styles.timeStyles.Length; t++)
-                            {
-                                if (chore.elements[c].styles.timeStyles[t] > timeStart)
-                                {
-                                    chore.elements[c].styles.timeStyles[t] += diff;
-                                }
-                            }
-
-                            modifiedStyles = true;
-                        }
-                    }
-                }
-
-                if (chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].hasContribution)
-                {
-                    float timeStart = chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].contribElement[0].timeContribution;
-
-                    for (int i = 1; i < chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].contribElement.Length; i++)
-                    {
-                        if ((chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].contribElement[i].timeContribution != chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].contribElement[i - 1].timeContribution)
-                            || chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].contribElement[i - 1].modifiedTime)
-                        {
-                            chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].contribElement[i].timeContribution += diff;
-                            chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].contribElement[i].modifiedTime = true;
-                        }
-                    }
-
-                    for (int c = 0; c < chore.countElements; c++)
-                    {
-                        if (chore.elements[c].hasContribution && c != ind)
-                        {
-                            for (int t = 0; t < chore.elements[c].contribElement.Length; t++)
-                            {
-                                if (chore.elements[c].hasTime && chore.elements[c].contribElement[t].timeContribution > timeStart)
-                                {
-                                    chore.elements[c].contribElement[t].timeContribution += diff;
-                                    //chore.elements[c].timeElement[t].modifiedTime = true;
-                                }
-                            }
-                        }
-
-                        if (chore.elements[c].hasActiveCamera && !modifiedCameras)
-                        {
-                            for (int t = 0; t < chore.elements[c].cameras.time.Length; t++)
-                            {
-                                if (chore.elements[c].cameras.time[t] > timeStart)
-                                {
-                                    chore.elements[c].cameras.time[t] += diff;
-                                }
-                            }
-                        }
-
-                        if (chore.elements[c].hasStyleGuide && !modifiedStyles)
-                        {
-                            for (int t = 0; t < chore.elements[c].styles.timeStyles.Length; t++)
-                            {
-                                if (chore.elements[c].styles.timeStyles[t] > timeStart)
-                                {
-                                    chore.elements[c].styles.timeStyles[t] += diff;
-                                }
-                            }
-                        }
-                    }
-                }
-
+                float diff = newValue - chore.elements[ind].elementTime;
                 chore.elements[ind].elementTime = newValue;
-                timeBlockTB.Text = Convert.ToString(chore.elements[ind].elementTime);
+                bool[] modifiedCameras = new bool[chore.elements.Length];
+                bool[] modifiedStyles = new bool[chore.elements.Length];
+                bool[] modifiedSubBlock = new bool[chore.elements.Length];
+                bool changeOneBlock = onlyOneBlockChangeCB.IsChecked.Value;
+                if(!changeOneBlock) chore.commonTime += diff;
+
+                if (chore.elements[ind].hasTime)
+                {
+                    float timeStart = chore.elements[ind].timeElement[0].timeElement;
+
+                    for (int i = 1; i < chore.elements[ind].timeElement.Length; i++)
+                    {
+                        chore.elements[ind].timeElement[i].timeElement += diff;
+                        chore.elements[ind].timeElement[i].modifiedTime = true;
+                    }
+
+                    if (chore.elements[chore.objects[objectNamesCB.SelectedIndex].elements[elementNamesCB.SelectedIndex]].subBlockTimings.timeElements.Length > 0)
+                    {
+                        for(int s = 1; s < chore.elements[ind].subBlockTimings.timeElements.Length; s++)
+                        {
+                            chore.elements[ind].subBlockTimings.timeElements[s] += diff;
+                        }
+                    }
+
+                    if (!changeOneBlock)
+                    {
+                        for (int c = 0; c < chore.countElements; c++)
+                        {
+                            if (chore.elements[c].hasTime && c != ind)
+                            {
+                                for (int t = 0; t < chore.elements[c].timeElement.Length; t++)
+                                {
+                                    if (chore.elements[c].hasTime && chore.elements[c].timeElement[t].timeElement > timeStart)
+                                    {
+                                        chore.elements[c].timeElement[t].timeElement += diff;
+                                        chore.elements[c].timeElement[t].modifiedTime = true;
+                                    }
+                                }
+                            }
+
+                            if (chore.elements[c].hasActiveCamera)
+                            {
+                                for (int t = 0; t < chore.elements[c].cameras.time.Length; t++)
+                                {
+                                    if (chore.elements[c].cameras.time[t] > timeStart)
+                                    {
+                                        chore.elements[c].cameras.time[t] += diff;
+                                    }
+                                }
+
+                                modifiedCameras[c] = true;
+                            }
+
+                            if (chore.elements[c].hasStyleGuide)
+                            {
+                                for (int t = 0; t < chore.elements[c].styles.timeStyles.Length; t++)
+                                {
+                                    if (chore.elements[c].styles.timeStyles[t] > timeStart)
+                                    {
+                                        chore.elements[c].styles.timeStyles[t] += diff;
+                                    }
+                                }
+
+                                modifiedStyles[c] = true;
+                            }
+
+                            if (chore.elements[c].subBlockTimings.timeElements != null && chore.elements[c].subBlockTimings.timeElements.Length > 0 && c != ind)
+                            {
+                                for (int s = 0; s < chore.elements[c].subBlockTimings.timeElements.Length; s++)
+                                {
+                                    if (chore.elements[c].subBlockTimings.timeElements[s] >= timeStart)
+                                    {
+                                        chore.elements[c].subBlockTimings.timeElements[s] += diff;
+                                    }
+                                }
+
+                                modifiedSubBlock[c] = true;
+                            }
+                        }
+                    }
+                }
+
+                if (chore.elements[ind].hasContribution)
+                {
+                    float timeStart = chore.elements[ind].contribElement[0].timeContribution;
+
+                    for (int i = 1; i < chore.elements[ind].contribElement.Length; i++)
+                    {
+                        if ((chore.elements[ind].contribElement[i].timeContribution != chore.elements[ind].contribElement[i - 1].timeContribution)
+                            || chore.elements[ind].contribElement[i - 1].modifiedTime)
+                        {
+                            chore.elements[ind].contribElement[i].timeContribution += diff;
+                            chore.elements[ind].contribElement[i].modifiedTime = true;
+                        }
+                    }
+
+                    if (!changeOneBlock)
+                    {
+                        for (int c = 0; c < chore.countElements; c++)
+                        {
+                            if (chore.elements[c].hasContribution && c != ind)
+                            {
+                                for (int t = 0; t < chore.elements[c].contribElement.Length; t++)
+                                {
+                                    if (chore.elements[c].hasTime && chore.elements[c].contribElement[t].timeContribution >= timeStart)
+                                    {
+                                        chore.elements[c].contribElement[t].timeContribution += diff;
+                                        //chore.elements[c].timeElement[t].modifiedTime = true;
+                                    }
+                                }
+                            }
+
+                            if (chore.elements[c].hasActiveCamera && !modifiedCameras[c])
+                            {
+                                for (int t = 0; t < chore.elements[c].cameras.time.Length; t++)
+                                {
+                                    if (chore.elements[c].cameras.time[t] > timeStart)
+                                    {
+                                        chore.elements[c].cameras.time[t] += diff;
+                                    }
+                                }
+
+                                modifiedCameras[c] = true;
+                            }
+
+                            if (chore.elements[c].hasStyleGuide && !modifiedStyles[c])
+                            {
+                                for (int t = 0; t < chore.elements[c].styles.timeStyles.Length; t++)
+                                {
+                                    if (chore.elements[c].styles.timeStyles[t] > timeStart)
+                                    {
+                                        chore.elements[c].styles.timeStyles[t] += diff;
+                                    }
+                                }
+
+                                modifiedStyles[c] = true;
+                            }
+
+                            if (chore.elements[c].subBlockTimings.timeElements != null && chore.elements[c].subBlockTimings.timeElements.Length > 0 && c != ind && !modifiedSubBlock[c])
+                            {
+                                for (int s = 0; s < chore.elements[c].subBlockTimings.timeElements.Length; s++)
+                                {
+                                    if (chore.elements[c].subBlockTimings.timeElements[s] > timeStart)
+                                    {
+                                        chore.elements[c].subBlockTimings.timeElements[s] += diff;
+                                    }
+                                }
+
+                                modifiedSubBlock[c] = true;
+                            }
+                        }
+                    }
+                }
+
+                timeBlockTB.Text = Convert.ToString(newValue);
             }
             catch
             {
@@ -1535,6 +1639,18 @@ else
                         }
                     }
 
+                    if (chore.elements[i].subBlockTimings.timeElements != null && chore.elements[i].subBlockTimings.timeElements.Length > 0)
+                    {
+                        int pos = chore.elements[i].subBlockTimings.Pos;
+
+                        for(int t = 0; t < chore.elements[i].subBlockTimings.timeElements.Length; t++)
+                        {
+                            tmp = BitConverter.GetBytes(chore.elements[i].subBlockTimings.timeElements[t]);
+                            Array.Copy(chore.elements[i].subBlockElement, pos, tmp, 0, tmp.Length);
+                            pos += tmp.Length;
+                        }
+                    }
+
                     bw.Write(chore.elements[i].elementTime);
                     bw.Write(chore.elements[i].value2);
                     bw.Write(chore.elements[i].value3);
@@ -1590,6 +1706,11 @@ else
                 bw.Close();
                 fs.Close();
             }
+        }
+
+        private void timeBtn_Click(object sender, RoutedEventArgs e)
+        {
+            System.Windows.MessageBox.Show("Maybe I'll make it option later...");
         }
     }
 }
